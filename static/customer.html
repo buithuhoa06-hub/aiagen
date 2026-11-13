@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cổng Khách hàng — Gửi Yêu cầu Chào giá | Thiên Minh Tech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #5d412e 0%, #8b6850 40%, #ad8a70 75%, #4e3729 100%);
+      padding: 24px 16px;
+      color: #2b1f18;
+      position: relative;
+    }
+    .ambient-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.5;
+      animation: floatOrb 15s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 380px; height: 380px; background: #d9a074; top: -60px; left: 8%; }
+    .orb-2 { width: 420px; height: 420px; background: #f2d3b3; bottom: -100px; right: 10%; animation-delay: -5s; }
+    @keyframes floatOrb {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(28px, -24px) scale(1.06); }
+    }
+    .portal-shell {
+      position: relative;
+      z-index: 2;
+      max-width: 940px;
+      margin: 0 auto;
+      background: rgba(255, 249, 244, 0.72);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1.5px solid rgba(255, 255, 255, 0.58);
+      border-radius: 26px;
+      padding: 26px 28px;
+      box-shadow: 0 28px 65px rgba(24, 14, 8, 0.32);
+    }
+    .glass-input {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 11px;
+      border: 1px solid rgba(140, 106, 81, 0.25);
+      background: rgba(255, 255, 255, 0.88);
+      font-size: 12.5px;
+      color: #2b1f18;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .glass-input:focus {
+      border-color: #e5534b;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(229, 83, 75, 0.14);
+    }
+    .btn-coral {
+      background: linear-gradient(135deg, #e5534b 0%, #c93b34 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 13px;
+      padding: 12px 22px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(229, 83, 75, 0.3);
+      transition: all 0.25s ease;
+    }
+    .btn-coral:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(229, 83, 75, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+
+  <div class="portal-shell space-y-5">
+    <!-- Header riêng cho Khách hàng -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-300/50">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white font-extrabold text-sm flex items-center justify-center shadow">TM</div>
+        <div>
+          <h1 class="text-lg font-extrabold text-stone-900 m-0">CỔNG KHÁCH HÀNG — GỬI YÊU CẦU CHÀO GIÁ DỰ ÁN</h1>
+          <p class="text-xs text-stone-600 m-0 mt-0.5">Công ty Cổ phần Công nghệ Thiên Minh • Dữ liệu gửi lên sẽ đồng bộ trực tiếp về hệ thống xử lý</p>
+        </div>
+      </div>
+      <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+        🔒 Cổng Khách hàng Độc lập
+      </span>
+    </div>
+
+    <!-- Nút chọn nhanh để demo kiểm thử -->
+    <div class="flex flex-wrap items-center justify-between gap-2 bg-white/60 p-3 rounded-2xl border border-white">
+      <span class="text-xs font-bold text-stone-700">⚡ Điền nhanh mẫu kiểm thử:</span>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="fillSample('valid')" class="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold cursor-pointer hover:bg-emerald-100">✅ Mẫu Chuẩn (Hợp lệ)</button>
+        <button onclick="fillSample('bad_format')" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold cursor-pointer hover:bg-rose-100">❌ Mẫu Sai định dạng</button>
+        <button onclick="fillSample('unclean')" class="px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold cursor-pointer hover:bg-amber-100">🧹 Mẫu Chưa sạch</button>
+      </div>
+    </div>
+
+    <!-- Thông báo lỗi định dạng / chưa sạch -->
+    <div id="errBox" class="hidden p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-1.5">
+      <div id="errTitle" class="font-extrabold text-sm"></div>
+      <ul id="errList" class="pl-5 m-0 space-y-1"></ul>
+    </div>
+
+    <!-- Thông báo gửi thành công -->
+    <div id="okBox" class="hidden p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2">
+      <div class="text-base font-extrabold flex items-center gap-2">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+        <span>Đã tiếp nhận &amp; đồng bộ yêu cầu thành công!</span>
+      </div>
+      <p class="text-xs text-emerald-800 m-0">
+        Mã theo dõi của Quý khách: <strong id="okCode" class="text-sm"></strong>. Dữ liệu đã được làm sạch và chuyển tự động sang hàng đợi nội bộ của Thiên Minh.
+      </p>
+    </div>
+
+    <!-- Biểu mẫu Sheet Khách hàng -->
+    <div class="bg-white/75 p-5 rounded-2xl border border-white space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="sm:col-span-2">
+          <label class="text-[11px] font-bold uppercase text-stone-500">Tên Công ty / Tổ chức *</label>
+          <input id="cClient" type="text" class="glass-input mt-1" placeholder="VD: Công ty Cổ phần ABC" />
+        </div>
+        <div>
+          <label class="text-[11px] font-bold uppercase text-stone-500">Email nhận báo giá *</label>
+          <input id="cEmail" type="email" class="glass-input mt-1" placeholder="purchasing@company.vn" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div>
+          <label class="text-[11px] font-bold uppercase text-stone-500">Hạn bàn giao (ngày) *</label>
+          <input id="cDeadline" type="text" class="glass-input mt-1" placeholder="VD: 10" />
+        </div>
+        <div>
+          <label class="text-[11px] font-bold uppercase text-stone-500">Ngân sách dự kiến (VNĐ)</label>
+          <input id="cBudget" type="text" class="glass-input mt-1" placeholder="VD: 250 triệu hoặc 250000000" />
+        </div>
+        <div>
+          <label class="text-[11px] font-bold uppercase text-stone-500">Chiết khấu đề nghị (%)</label>
+          <input id="cDiscount" type="text" class="glass-input mt-1" placeholder="VD: 4" />
+        </div>
+        <div>
+          <label class="text-[11px] font-bold uppercase text-stone-500">Yêu cầu Bảo trì / SLA</label>
+          <input id="cSla" type="text" class="glass-input mt-1" placeholder="VD: 8x5 Tiêu chuẩn" />
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-[11px] font-bold uppercase text-stone-500">Bảng chi tiết hạng mục thiết bị &amp; dịch vụ *</label>
+          <button onclick="addRow()" class="px-3 py-1 rounded-lg bg-stone-100 text-stone-700 text-xs font-bold border border-stone-200 cursor-pointer hover:bg-stone-200">+ Thêm dòng</button>
+        </div>
+        <div id="rowsWrap" class="space-y-2"></div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <span class="text-[11px] text-stone-500">Hệ thống sẽ kiểm tra định dạng &amp; làm sạch ngay trước khi gửi cho Nhân viên Kinh doanh.</span>
+        <button id="submitBtn" onclick="submitCustomerSheet()" class="btn-coral">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Gửi Yêu Cầu Chào Giá</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let rows = [];
+
+    function renderRows() {
+      document.getElementById("rowsWrap").innerHTML = rows.map((r, i) => `
+        <div class="grid grid-cols-12 gap-2 items-center bg-white/80 p-2 rounded-xl border border-stone-200/60">
+          <input class="glass-input col-span-4" value="${r.item}" onchange="rows[${i}].item=this.value" placeholder="Tên thiết bị *" />
+          <input class="glass-input col-span-3" value="${r.spec}" onchange="rows[${i}].spec=this.value" placeholder="Thông số kỹ thuật" />
+          <input class="glass-input col-span-2" value="${r.qty}" onchange="rows[${i}].qty=this.value" placeholder="SL *" />
+          <input class="glass-input col-span-2" value="${r.mandatory}" onchange="rows[${i}].mandatory=this.value" placeholder="ĐK bắt buộc" />
+          <button onclick="rows.splice(${i},1);renderRows()" class="col-span-1 text-rose-500 font-bold text-xs bg-transparent border-0 cursor-pointer">✕</button>
+        </div>
+      `).join("");
+    }
+
+    function addRow() {
+      rows.push({ item: "", spec: "", qty: "1", mandatory: "" });
+      renderRows();
+    }
+
+    function fillSample(type) {
+      document.getElementById("errBox").classList.add("hidden");
+      document.getElementById("okBox").classList.add("hidden");
+      if (type === "valid") {
+        document.getElementById("cClient").value = "Công ty Cổ phần Logistics Thái Bình Dương";
+        document.getElementById("cEmail").value = "muahang@pacificlog.vn";
+        document.getElementById("cDeadline").value = "12";
+        document.getElementById("cBudget").value = "350 triệu";
+        document.getElementById("cDiscount").value = "5";
+        document.getElementById("cSla").value = "8x5 Tiêu chuẩn NBD";
+        rows = [
+          { item: "Firewall Fortinet FortiGate 100F", spec: "IPS 1Gbps, 500 VPN", qty: "1", mandatory: "CO/CQ chính hãng" },
+          { item: "Access Point Aruba AP-515 Wi-Fi 6", spec: "Wi-Fi 6 Doanh nghiệp", qty: "8", mandatory: "Gắn trần & cấu hình" }
+        ];
+      } else if (type === "bad_format") {
+        document.getElementById("cClient").value = "Công ty XD Hòa Bình";
+        document.getElementById("cEmail").value = "info@hoabinh.vn";
+        document.getElementById("cDeadline").value = "làm gấp";
+        document.getElementById("cBudget").value = "chưa rõ";
+        document.getElementById("cDiscount").value = "abc";
+        document.getElementById("cSla").value = "";
+        rows = [{ item: "Switch mạng", spec: "Tốt", qty: "-3", mandatory: "" }];
+      } else {
+        document.getElementById("cClient").value = "công ty thương mại an phát";
+        document.getElementById("cEmail").value = "it@anphat.vn";
+        document.getElementById("cDeadline").value = "10";
+        document.getElementById("cBudget").value = "200 triệu";
+        document.getElementById("cDiscount").value = "4";
+        document.getElementById("cSla").value = "8x5";
+        rows = [{ item: "thiết bị lạ chưa rõ tên xxx", spec: "không rõ", qty: "2", mandatory: "" }];
+      }
+      renderRows();
+    }
+
+    async function submitCustomerSheet() {
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      document.getElementById("errBox").classList.add("hidden");
+      document.getElementById("okBox").classList.add("hidden");
+
+      try {
+        const res = await fetch("/api/customer/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client: document.getElementById("cClient").value,
+            contact_email: document.getElementById("cEmail").value,
+            deadline: document.getElementById("cDeadline").value,
+            budget: document.getElementById("cBudget").value,
+            discount: document.getElementById("cDiscount").value,
+            sla: document.getElementById("cSla").value,
+            rows: rows
+          })
+        });
+        const data = await res.json();
+        if (!data.accepted) {
+          document.getElementById("errBox").classList.remove("hidden");
+          document.getElementById("errTitle").textContent = data.title || "Vui lòng kiểm tra lại thông tin:";
+          document.getElementById("errList").innerHTML = (data.errors || []).map(e => `<li>${e}</li>`).join("");
+        } else {
+          document.getElementById("okBox").classList.remove("hidden");
+          document.getElementById("okCode").textContent = data.request_code;
+        }
+      } finally {
+        btn.disabled = false;
+        lucide.createIcons();
+      }
+    }
+
+    fillSample("valid");
+    lucide.createIcons();
+  </script>
+</body>
+</html>
+

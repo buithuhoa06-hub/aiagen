@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thiên Minh Tech — B2B AI Agent Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --glass-blur: 26px;
+      --bg-grad: linear-gradient(135deg, #5d412e 0%, #8b6850 38%, #ad8a70 72%, #4e3729 100%);
+      --accent-coral: #e5534b;
+      --accent-emerald: #10b981;
+    }
+
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg-grad);
+      color: #2b1f18;
+      padding: 18px;
+      overflow-x: hidden;
+      position: relative;
+      transition: background 0.6s ease;
+    }
+
+    /* Các khối ánh sáng trôi nổi tạo hiệu ứng chiều sâu sau lớp kính mờ */
+    .ambient-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+      animation: floatOrb 16s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 420px; height: 420px; background: #d9a074; top: -80px; left: 10%; }
+    .orb-2 { width: 480px; height: 480px; background: #c48468; bottom: -120px; right: 8%; animation-delay: -6s; }
+    .orb-3 { width: 320px; height: 320px; background: #f2d3b3; top: 38%; left: 48%; opacity: 0.35; animation-delay: -11s; }
+
+    @keyframes floatOrb {
+      0%   { transform: translate(0px, 0px) scale(1); }
+      50%  { transform: translate(36px, -28px) scale(1.08); }
+      100% { transform: translate(-24px, 32px) scale(0.96); }
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseRing {
+      0%   { box-shadow: 0 0 0 0 rgba(229, 83, 75, 0.45); }
+      70%  { box-shadow: 0 0 0 8px rgba(229, 83, 75, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(229, 83, 75, 0); }
+    }
+
+    @keyframes liveDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.35); opacity: 0.65; }
+    }
+
+    /* Bố cục 2 khối kính nổi giống hệt mẫu */
+    .studio-layout {
+      position: relative;
+      z-index: 2;
+      max-width: 1520px;
+      margin: 0 auto;
+      display: flex;
+      gap: 18px;
+      min-height: calc(100vh - 36px);
+      align-items: stretch;
+    }
+
+    /* SIDEBAR KÍNH MỜ NÂU ẤM */
+    .glass-sidebar {
+      width: 256px;
+      flex-shrink: 0;
+      background: rgba(56, 39, 28, 0.56);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 24px;
+      padding: 20px 14px;
+      color: #f8f1eb;
+      box-shadow: 0 24px 55px rgba(24, 14, 8, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1), padding 0.35s ease;
+    }
+    .glass-sidebar.collapsed {
+      width: 82px;
+      padding: 20px 10px;
+    }
+    .glass-sidebar.collapsed .hide-collapsed {
+      display: none;
+    }
+
+    .collapse-btn {
+      position: absolute;
+      right: -13px;
+      top: 44px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 252, 248, 0.92);
+      color: #3d2b20;
+      border: 1px solid rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.25s ease;
+      z-index: 10;
+    }
+    .collapse-btn:hover {
+      transform: scale(1.12);
+    }
+
+    .nav-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 13px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255, 248, 242, 0.78);
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .nav-pill:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      transform: translateX(4px);
+    }
+    .nav-pill.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.14) 100%);
+      border-color: rgba(255, 255, 255, 0.38);
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+
+    /* KHỐI CHÍNH KÍNH MỜ KEM SÁNG */
+    .glass-main {
+      flex: 1;
+      min-width: 0;
+      background: rgba(255, 248, 242, 0.38);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1.5px solid rgba(255, 255, 255, 0.42);
+      border-radius: 26px;
+      padding: 18px 22px;
+      box-shadow: 0 26px 64px rgba(24, 14, 8, 0.25), inset 0 1px 0 rgba(255,255,255,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeSlideUp 0.45s ease-out;
+    }
+
+    /* Thẻ kính con bên trong */
+    .frost-card {
+      background: rgba(255, 251, 247, 0.68);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 18px;
+      padding: 15px 18px;
+      box-shadow: 0 8px 24px rgba(45, 28, 16, 0.06);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .frost-card::after {
+      content: "";
+      position: absolute;
+      top: 0; left: -120%;
+      width: 55%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.38), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.65s ease;
+      pointer-events: none;
+    }
+    .frost-card:hover::after {
+      left: 140%;
+    }
+    .frost-card-hover:hover {
+      transform: translateY(-4px);
+      background: rgba(255, 252, 249, 0.84);
+      box-shadow: 0 16px 32px rgba(45, 28, 16, 0.12);
+    }
+
+    /* 8 Ô Quy trình trực quan ở giữa (có bước Xác minh sau Làm sạch) */
+    .pipeline-strip {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(95px, 1fr));
+      gap: 8px;
+    }
+    @media (max-width: 1180px) {
+      .pipeline-strip {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    .pipe-node {
+      background: rgba(255, 253, 250, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 14px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .pipe-node:hover {
+      transform: translateY(-4px) scale(1.03);
+      background: #ffffff;
+      box-shadow: 0 10px 22px rgba(45, 28, 16, 0.1);
+    }
+    .pipe-node.active {
+      border: 1.5px solid #e5534b;
+      background: #ffffff;
+      animation: pulseRing 2s infinite;
+    }
+    .pipe-node.done {
+      border: 1.5px solid #10b981;
+      background: rgba(236, 253, 245, 0.9);
+    }
+    .pipe-node.error {
+      border: 1.5px solid #ef4444;
+      background: rgba(254, 242, 242, 0.92);
+    }
+
+    /* Thẻ Kịch bản bên trái giống ảnh mẫu (nền sáng + viền đỏ coral khi chọn) */
+    .scenario-box {
+      background: rgba(255, 252, 249, 0.76);
+      border: 1.5px solid rgba(255, 255, 255, 0.75);
+      border-radius: 16px;
+      padding: 13px 15px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .scenario-box:hover {
+      transform: translateX(4px);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 10px 22px rgba(45, 28, 16, 0.08);
+    }
+    .scenario-box.selected {
+      border-color: #e5534b;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 10px 26px rgba(229, 83, 75, 0.16);
+    }
+
+    /* Input kính sạch */
+    .glass-input {
+      width: 100%;
+      padding: 8px 11px;
+      border-radius: 11px;
+      border: 1px solid rgba(140, 106, 81, 0.22);
+      background: rgba(255, 255, 255, 0.82);
+      font-size: 12px;
+      color: #2b1f18;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .glass-input:focus {
+      border-color: #e5534b;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(229, 83, 75, 0.14);
+    }
+
+    /* Nút chính Coral-Red / Emerald mượt */
+    .btn-coral {
+      background: linear-gradient(135deg, #e5534b 0%, #c93b34 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 13px;
+      padding: 11px 18px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(229, 83, 75, 0.28);
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .btn-coral:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(229, 83, 75, 0.38);
+      filter: brightness(1.04);
+    }
+
+    /* Floating Glass Controls góc trên phải (giống ảnh mẫu) */
+    .glass-controls-pill {
+      position: fixed;
+      top: 14px;
+      right: 18px;
+      z-index: 60;
+      background: rgba(56, 39, 28, 0.72);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      padding: 7px 13px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.25);
+      transition: all 0.25s ease;
+    }
+    .glass-controls-pill:hover {
+      transform: scale(1.05);
+      background: rgba(56, 39, 28, 0.9);
+    }
+
+    /* Floating Chatbot Panel */
+    .chat-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 26px;
+      z-index: 55;
+      background: linear-gradient(135deg, #3c291e 0%, #5c3f2e 100%);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 14px 32px rgba(24, 14, 8, 0.38);
+      transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .chat-fab:hover {
+      transform: translateY(-4px) scale(1.04);
+    }
+    .chat-popup {
+      position: fixed;
+      bottom: 78px;
+      right: 26px;
+      width: 360px;
+      max-width: calc(100vw - 36px);
+      z-index: 55;
+      background: rgba(45, 31, 22, 0.88);
+      backdrop-filter: blur(26px);
+      -webkit-backdrop-filter: blur(26px);
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      border-radius: 22px;
+      color: #ffffff;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.42);
+      overflow: hidden;
+      transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .chat-popup.closed {
+      opacity: 0;
+      transform: translateY(18px) scale(0.95);
+      pointer-events: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 15px; height: 15px;
+      border: 2.5px solid rgba(255,255,255,0.35);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* Universal Hover Inspector (Hiển thị nội dung ngay khi di chuột, không cần click) */
+    #hoverInspector {
+      position: fixed;
+      z-index: 80;
+      width: 340px;
+      max-width: calc(100vw - 24px);
+      background: rgba(40, 27, 19, 0.92);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 18px;
+      padding: 13px 15px;
+      color: #fffaf5;
+      box-shadow: 0 22px 50px rgba(15, 8, 4, 0.45), inset 0 1px 0 rgba(255,255,255,0.22);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px) scale(0.97);
+      transition: opacity 0.16s ease, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), left 0.12s ease, top 0.12s ease;
+    }
+    #hoverInspector.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  </style>
+</head>
+<body>
+  <!-- Đốm ánh sáng chuyển động phía sau kính -->
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="ambient-orb orb-3"></div>
+
+  <!-- Nút Glass Controls góc trên phải -->
+  <button class="glass-controls-pill" onclick="toggleGlassControls()">
+    <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+    <span>Glass Controls</span>
+  </button>
+
+  <!-- Popover tùy chỉnh hiệu ứng kính & màu nền -->
+  <div id="glassPopover" class="hidden fixed top-12 right-5 z-60 w-64 p-4 rounded-2xl text-white text-xs shadow-2xl" style="background: rgba(42,29,21,0.9); backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,0.25);">
+    <div class="font-bold mb-3 flex items-center justify-between">
+      <span>Tùy chỉnh Glassmorphism</span>
+      <button onclick="toggleGlassControls()" class="text-white/60 hover:text-white bg-transparent border-0 cursor-pointer">✕</button>
+    </div>
+    <label class="block text-[11px] text-white/75 mb-1">Độ mờ kính (Blur): <span id="blurVal">26px</span></label>
+    <input type="range" min="10" max="42" value="26" class="w-full mb-3 accent-amber-400" oninput="setBlur(this.value)" />
+    <div class="text-[11px] text-white/75 mb-1.5">Bảng màu nền:</div>
+    <div class="grid grid-cols-3 gap-1.5">
+      <button onclick="setTheme('bronze')" class="py-1.5 rounded-lg bg-amber-800/80 border border-white/25 text-white font-semibold cursor-pointer">Ấm (Mẫu)</button>
+      <button onclick="setTheme('emerald')" class="py-1.5 rounded-lg bg-emerald-800/80 border border-white/25 text-white font-semibold cursor-pointer">Ngọc lục</button>
+      <button onclick="setTheme('midnight')" class="py-1.5 rounded-lg bg-slate-800/80 border border-white/25 text-white font-semibold cursor-pointer">Đêm AI</button>
+    </div>
+  </div>
+
+  <!-- BỐ CỤC CHÍNH -->
+  <div class="studio-layout">
+    <!-- =============================================================== -->
+    <!-- 1. SIDEBAR KÍNH MỜ BÊN TRÁI                                     -->
+    <!-- =============================================================== -->
+    <aside id="glassSidebar" class="glass-sidebar">
+      <button class="collapse-btn" onclick="toggleSidebar()" title="Thu gọn / Mở rộng">
+        <i data-lucide="chevron-left" id="collapseIcon" class="w-3.5 h-3.5"></i>
+      </button>
+
+      <!-- Brand -->
+      <div class="flex items-center gap-3 px-2 mb-5">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center text-white font-extrabold text-sm shadow-lg flex-shrink-0">
+          TM
+        </div>
+        <div class="hide-collapsed leading-tight">
+          <div class="text-sm font-bold text-white">Thiên Minh Tech</div>
+          <div class="text-[11px] text-white/65">B2B AI Agent Studio</div>
+        </div>
+      </div>
+
+      <!-- Status Pill -->
+      <div class="hide-collapsed flex items-center justify-between px-3 py-2 rounded-xl bg-black/20 border border-white/15 mb-5 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400" style="animation: liveDot 1.8s infinite;"></span>
+          <span class="text-white/90 font-medium">AI Workflow Engine</span>
+        </div>
+        <span class="text-[10px] font-extrabold text-emerald-400 tracking-wider">ACTIVE</span>
+      </div>
+
+      <!-- Điều hướng -->
+      <div class="hide-collapsed text-[10px] font-bold tracking-widest text-white/45 px-3 mb-2">ĐIỀU HƯỚNG</div>
+      <div class="space-y-1">
+        <button id="nav-pipeline" onclick="switchView('pipeline')" class="nav-pill active" title="Quy trình AI 5 bước">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="cpu" class="w-4 h-4 flex-shrink-0"></i>
+            <span class="hide-collapsed">Quy trình AI (Pipeline)</span>
+          </span>
+          <span class="hide-collapsed text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-bold">5 Steps</span>
+        </button>
+
+        <button id="nav-catalog" onclick="switchView('catalog')" class="nav-pill" title="Bảng giá Master">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="database" class="w-4 h-4 flex-shrink-0"></i>
+            <span class="hide-collapsed">Bảng giá Master</span>
+          </span>
+        </button>
+
+        <button id="nav-capacity" onclick="switchView('catalog')" class="nav-pill" title="Tồn khả dụng & Lead-time">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="truck" class="w-4 h-4 flex-shrink-0"></i>
+            <span class="hide-collapsed">Tồn khả dụng &amp; Lead time</span>
+          </span>
+        </button>
+
+        <button id="nav-policy" onclick="switchView('policy')" class="nav-pill" title="Chính sách Phê duyệt">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0"></i>
+            <span class="hide-collapsed">Chính sách Phê duyệt</span>
+          </span>
+        </button>
+
+        <button id="nav-history" onclick="switchView('history')" class="nav-pill" title="Lịch sử Hồ sơ">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="folder-clock" class="w-4 h-4 flex-shrink-0"></i>
+            <span class="hide-collapsed">Lịch sử Hồ sơ</span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Hồ sơ gần đây -->
+      <div class="hide-collapsed text-[10px] font-bold tracking-widest text-white/45 px-3 mt-6 mb-2">HỒ SƠ GẦN ĐÂY</div>
+      <div id="recentSidebarList" class="hide-collapsed space-y-1.5 overflow-y-auto flex-1 text-xs">
+        <div class="px-3 py-2 rounded-xl bg-white/5 text-white/60 text-[11px]">Chưa có hồ sơ mới lưu</div>
+      </div>
+    </aside>
+
+    <!-- =============================================================== -->
+    <!-- 2. BẢNG KÍNH CHÍNH BÊN PHẢI                                     -->
+    <!-- =============================================================== -->
+    <main class="glass-main">
+      <!-- TOP HEADER BAR -->
+      <div class="frost-card !py-2.5 !px-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 text-white text-[11px] font-extrabold flex items-center justify-center shadow">TM</span>
+          <span class="text-xs font-extrabold tracking-wide text-stone-800 uppercase">CÔNG TY THIÊN MINH • HỆ THỐNG ĐÁNH GIÁ CHÀO GIÁ B2B</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <a href="/khach-hang" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50/95 border border-amber-200 text-amber-800 text-[11px] font-bold no-underline hover:bg-amber-100 transition" title="Mở trang dành riêng cho Khách hàng điền Sheet">
+            🔗 Cổng Khách hàng (/khach-hang)
+          </a>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50/90 border border-emerald-200 text-emerald-700 text-[11px] font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Quỹ công trống: <strong id="opsRemHeader">42</strong> ngày công
+          </span>
+          <button onclick="resetAll()" class="w-8 h-8 rounded-full bg-white/80 border border-white flex items-center justify-center text-stone-600 hover:rotate-180 transition duration-500 cursor-pointer" title="Làm mới">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW CHÍNH: PIPELINE -->
+      <div id="view-pipeline" class="space-y-4">
+        <!-- 4 THẺ KPI TRÊN CÙNG -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+          <div class="frost-card frost-card-hover cursor-default">
+            <div class="flex items-center gap-2 text-xs font-semibold text-stone-500 mb-1.5">
+              <i data-lucide="inbox" class="w-3.5 h-3.5 text-indigo-500"></i>
+              <span>Tổng hồ sơ / Tháng</span>
+            </div>
+            <div class="text-xl font-extrabold text-stone-900">~20 Bộ RFP</div>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Kiểm tra Sheet</span>
+              <span class="text-[11px] text-stone-500">Tự động báo lỗi sai định dạng</span>
+            </div>
+          </div>
+
+          <div class="frost-card frost-card-hover cursor-default">
+            <div class="flex items-center gap-2 text-xs font-semibold text-stone-500 mb-1.5">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500"></i>
+              <span>Chống sót điều kiện</span>
+            </div>
+            <div class="text-xl font-extrabold text-stone-900">100% Spec</div>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">+ Tự kiểm</span>
+              <span class="text-[11px] text-stone-500">Làm sạch &amp; rà điều kiện bắt buộc</span>
+            </div>
+          </div>
+
+          <div class="frost-card frost-card-hover cursor-default">
+            <div class="flex items-center gap-2 text-xs font-semibold text-stone-500 mb-1.5">
+              <i data-lucide="tag" class="w-3.5 h-3.5 text-amber-500"></i>
+              <span>Bảng giá &amp; Chiết khấu</span>
+            </div>
+            <div class="text-xl font-extrabold text-stone-900" id="kpiLivePrice">Thời gian thực</div>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[10px] font-bold">Zero Error</span>
+              <span class="text-[11px] text-stone-500" id="kpiLiveAuth">Phân quyền duyệt nhất quán</span>
+            </div>
+          </div>
+
+          <div class="frost-card frost-card-hover cursor-default">
+            <div class="flex items-center gap-2 text-xs font-semibold text-stone-500 mb-1.5">
+              <i data-lucide="truck" class="w-3.5 h-3.5 text-rose-500"></i>
+              <span>Thẩm định Tồn &amp; Lịch</span>
+            </div>
+            <div class="text-xl font-extrabold text-stone-900" id="kpiLiveLead">Kho ATP</div>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-bold">Khả thi</span>
+              <span class="text-[11px] text-stone-500">Đối chiếu lịch kỹ sư thực tế</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- THANH SƠ ĐỒ QUY TRÌNH TRỰC QUAN -->
+        <div class="frost-card">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2 text-xs font-extrabold text-stone-700 uppercase tracking-wide">
+              <i data-lucide="git-branch" class="w-4 h-4 text-rose-500"></i>
+              <span>QUY TRÌNH XỬ LÝ YÊU CẦU CHÀO GIÁ - THIÊN MINH COMPANY (SƠ ĐỒ TRỰC QUAN)</span>
+            </div>
+            <span id="pipelineBadge" class="text-[11px] font-extrabold text-rose-600 uppercase tracking-wider">SẴN SÀNG TIẾP NHẬN</span>
+          </div>
+
+          <div class="pipeline-strip">
+            <div id="pnode-1" onclick="focusStep(1)" class="pipe-node active" title="Bước 1: Khách hàng nhập Sheet">
+              <div class="text-[10px] font-semibold text-stone-400">Bước 1</div>
+              <div class="text-xs font-bold text-stone-800 mt-0.5">Nhập Sheet</div>
+            </div>
+            <div id="pnode-c1" class="pipe-node" title="Điều kiện 1: Đúng định dạng">
+              <div class="text-[10px] font-semibold text-stone-400">Điều kiện 1</div>
+              <div class="text-xs font-bold text-stone-800 mt-0.5">Đúng định dạng?</div>
+            </div>
+            <div id="pnode-2" onclick="focusStep(2)" class="pipe-node" title="Bước 2: Làm sạch dữ liệu">
+              <div class="text-[10px] font-semibold text-stone-400">Bước 2</div>
+              <div class="text-xs font-bold text-stone-800 mt-0.5">Làm sạch</div>
+            </div>
+            <div id="pnode-c2" class="pipe-node" title="Điều kiện 2: Đã sạch & Đạt chuẩn">
+              <div class="text-[10px] font-semibold text-stone-400">Điều kiện 2</div>
+              <div class="text-xs font-bold text-stone-800 mt-0.5">Đạt chuẩn?</div>
+            </div>
+            <div id="pnode-v" onclick="if(state.cleanedData) showVerifyCleanScreen()" class="pipe-node" title="Xác nhận dữ liệu sau làm sạch">
+              <div class="text-[10px] font-semibold text-stone-400">Kiểm tra</div>
+              <div class="text-xs font-bold text-stone-800 mt-0.5">Xác nhận</div>
+            </div>
+            <div id="pnode-3" onclick="focusStep(3)" class="pipe-node" title="Bước 3: AI Agent Phân tích">
+              <div class="text-[10px] font-semibold text-stone-400">Bước 3</div>
+              <div class="text-xs font-bold text-stone-800 mt-0.5">AI Phân tích</div>
+            </div>
+            <div id="pnode-4" onclick="focusStep(4)" class="pipe-node" title="Bước 4: Xác nhận & Feedback">
+              <div class="text-[10px] font-semibold text-stone-400">Bước 4</div>
+              <div class="text-xs font-bold text-stone-800 mt-0.5">Feedback</div>
+            </div>
+            <div id="pnode-5" onclick="focusStep(5)" class="pipe-node" title="Bước 5: Xuất Báo cáo / Dashboard">
+              <div class="text-[10px] font-semibold text-stone-400">Bước 5</div>
+              <div class="text-xs font-bold text-stone-800 mt-0.5">Báo cáo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KHU VỰC 2 CỘT DƯỚI: TRÁI (KỊCH BẢN + NHẬP SHEET) | PHẢI (KẾT QUẢ & XỬ LÝ TỪNG BƯỚC) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+          <!-- CỘT TRÁI (5 cols) -->
+          <div class="lg:col-span-5 frost-card flex flex-col gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2 text-xs font-extrabold text-stone-700 uppercase">
+                <i data-lucide="list" class="w-4 h-4"></i>
+                <span>NGUỒN DỮ LIỆU ĐẦU VÀO</span>
+              </div>
+              <div class="flex gap-1">
+                <button id="tabLeftInbound" onclick="switchLeftTab('inbound')" class="px-2 py-1 rounded-lg bg-transparent text-[11px] font-semibold text-stone-500 border-0 cursor-pointer inline-flex items-center gap-1">
+                  📩 Từ KH <span id="inboundBadge" class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-extrabold">0</span>
+                </button>
+                <button id="tabLeftScen" onclick="switchLeftTab('scenarios')" class="px-2 py-1 rounded-lg bg-white text-[11px] font-bold text-stone-800 shadow-sm border-0 cursor-pointer">Mẫu 1-Click</button>
+                <button id="tabLeftEdit" onclick="switchLeftTab('sheet')" class="px-2 py-1 rounded-lg bg-transparent text-[11px] font-semibold text-stone-500 border-0 cursor-pointer">Sửa Sheet</button>
+              </div>
+            </div>
+
+            <!-- Danh sách Yêu cầu đồng bộ từ Cổng Khách hàng / Google Sheet -->
+            <div id="leftInboundBox" class="hidden space-y-2.5">
+              <div class="p-2.5 rounded-xl bg-white/70 border border-white space-y-1.5">
+                <div class="text-[10px] font-extrabold text-stone-600 uppercase">🔗 Đồng bộ trực tiếp từ Google Sheet (URL)</div>
+                <div class="flex gap-1.5">
+                  <input id="gsheetUrlInput" type="text" class="glass-input !py-1.5 !text-[11px]" placeholder="Dán link Google Sheet (chế độ Viewer)..." />
+                  <button onclick="syncGoogleSheet()" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-bold border-0 cursor-pointer hover:bg-emerald-700 whitespace-nowrap">Đồng bộ</button>
+                </div>
+              </div>
+              <div id="inboundList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- Đẩy bất kỳ file Raw nào vào AI Agent -->
+            <label class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-white/75 border border-dashed border-rose-300 cursor-pointer hover:bg-white transition">
+              <div class="flex items-center gap-2 min-w-0">
+                <i data-lucide="file-up" class="w-4 h-4 text-rose-500 flex-shrink-0"></i>
+                <div class="truncate">
+                  <div id="rawFileStatus" class="text-[11px] font-bold text-stone-800 truncate">📎 Đẩy File Raw bất kỳ (.XLSX, .CSV, .DOCX, .PDF, .TXT)</div>
+                  <div class="text-[10px] text-stone-500">Giữ nguyên cấu trúc cột theo file gửi • Tự làm sạch &amp; phân tích</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 text-[10px] font-extrabold flex-shrink-0">Chọn File</span>
+              <input type="file" class="hidden" accept=".xlsx,.xls,.csv,.pdf,.docx,.doc,.txt" onchange="ingestRawFile(this)" />
+            </label>
+
+            <!-- Danh sách 4 Kịch bản mẫu -->
+            <div id="leftScenariosBox" class="space-y-2.5"></div>
+
+            <!-- Bảng nhập/chỉnh sửa Sheet (Hỗ trợ Định dạng gốc file Excel & Form chuẩn) -->
+            <div id="leftSheetEditor" class="hidden space-y-2.5">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[10px] font-bold uppercase text-stone-500">Khách hàng *</label>
+                  <input id="shClient" type="text" class="glass-input mt-0.5" placeholder="Tên công ty..." />
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold uppercase text-stone-500">Hạn (ngày) *</label>
+                  <input id="shDeadline" type="text" class="glass-input mt-0.5" placeholder="VD: 10" />
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold uppercase text-stone-500">Ngân sách (VNĐ)</label>
+                  <input id="shBudget" type="text" class="glass-input mt-0.5" placeholder="VD: 250000000" />
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold uppercase text-stone-500">Chiết khấu (%)</label>
+                  <input id="shDiscount" type="text" class="glass-input mt-0.5" placeholder="VD: 4" />
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold uppercase text-stone-500">Yêu cầu SLA / Bảo trì</label>
+                <input id="shSla" type="text" class="glass-input mt-0.5" placeholder="VD: 8x5 Tiêu chuẩn hoặc 24/7/2h Onsite" />
+              </div>
+
+              <!-- Thanh chuyển đổi xem dạng Bảng Excel gốc vs Form chuẩn -->
+              <div id="excelModeToggle" class="hidden flex items-center justify-between p-2 rounded-xl bg-emerald-50/90 border border-emerald-200">
+                <div class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-900 truncate">
+                  <i data-lucide="table" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                  <span id="excelFileLabel">File Excel gốc</span>
+                </div>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button id="btnViewExcel" onclick="setSheetViewMode('excel')" class="px-2 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-bold border-0 cursor-pointer">Bảng file gửi</button>
+                  <button id="btnViewForm" onclick="setSheetViewMode('form')" class="px-2 py-0.5 rounded-lg bg-white text-stone-700 text-[10px] font-semibold border border-stone-200 cursor-pointer">Form chuẩn</button>
+                </div>
+              </div>
+
+              <!-- Khung 1: Bảng dữ liệu theo đúng định dạng cột của File Excel gửi -->
+              <div id="excelTableView" class="hidden space-y-1.5">
+                <div class="overflow-x-auto max-h-52 rounded-xl border border-stone-200 bg-white/90 shadow-inner">
+                  <table class="w-full text-left border-collapse text-[11px] whitespace-nowrap">
+                    <thead id="excelThHead" class="bg-stone-100 border-b border-stone-200 text-stone-600 font-bold sticky top-0"></thead>
+                    <tbody id="excelTbBody" class="divide-y divide-stone-100"></tbody>
+                  </table>
+                </div>
+                <div class="flex items-center justify-between text-[10.5px] text-stone-500 px-1">
+                  <span>💡 Định dạng cột tuân thủ 100% file gửi. Sửa trực tiếp trên bảng.</span>
+                  <div class="flex gap-2">
+                    <button onclick="addExcelRow()" class="text-emerald-700 font-bold cursor-pointer hover:underline bg-transparent border-0">+ Thêm dòng</button>
+                    <label class="text-rose-600 font-bold cursor-pointer hover:underline">
+                      Đổi file
+                      <input type="file" class="hidden" accept=".xlsx,.xls,.csv" onchange="uploadSheetFile(this)" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Khung 2: Form nhập chuẩn mặc định -->
+              <div id="standardFormView" class="space-y-1.5">
+                <div class="max-h-44 overflow-y-auto space-y-1.5 pr-1" id="sheetRowsEditor"></div>
+                <div class="flex items-center justify-between pt-1">
+                  <button onclick="addSheetRow()" class="px-3 py-1.5 rounded-lg bg-white/80 text-stone-700 text-[11px] font-bold border border-stone-200 cursor-pointer hover:bg-white">
+                    + Thêm hạng mục
+                  </button>
+                  <label class="px-3 py-1.5 rounded-lg bg-white/80 text-rose-600 text-[11px] font-bold border border-rose-200 cursor-pointer hover:bg-white">
+                    📤 Tải Excel/CSV
+                    <input type="file" class="hidden" accept=".xlsx,.xls,.csv,.docx,.pdf" onchange="uploadSheetFile(this)" />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button id="runPipelineBtn" onclick="startFullPipeline()" class="btn-coral w-full mt-auto">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>Kích hoạt AI Agent Xử lý Quy trình</span>
+            </button>
+          </div>
+
+          <!-- CỘT PHẢI (7 cols): TRẠNG THÁI CHỜ HOẶC KẾT QUẢ TỪNG BƯỚC -->
+          <div class="lg:col-span-7 frost-card flex flex-col justify-between min-h-[390px]">
+            <!-- Empty state giống hệt ảnh mẫu -->
+            <div id="rightEmptyState" class="flex-1 flex flex-col items-center justify-center text-center px-6 py-10">
+              <div class="w-12 h-12 rounded-2xl bg-rose-100/80 border border-rose-200 flex items-center justify-center text-rose-500 mb-3 shadow-sm">
+                <i data-lucide="sparkles" class="w-6 h-6"></i>
+              </div>
+              <h4 class="text-sm font-bold text-stone-800 m-0">Chưa có yêu cầu nào được xử lý</h4>
+              <p class="text-xs text-stone-500 max-w-md mt-1.5 leading-relaxed">
+                Hãy chọn một trong 4 kịch bản mẫu ở bên trái hoặc bấm <strong>"Sửa Sheet"</strong> để nhập dữ liệu khách hàng, sau đó bấm <strong>"Kích hoạt AI Agent Xử lý Quy trình"</strong>.
+              </p>
+            </div>
+
+            <!-- Kết quả Step 1: Lỗi định dạng -->
+            <div id="rightFormatError" class="hidden space-y-4">
+              <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200">
+                <div class="flex items-center gap-2 text-sm font-extrabold text-rose-700 mb-2">
+                  <i data-lucide="x-circle" class="w-5 h-5"></i>
+                  <span>Bước 1 — BÁO LỖI ĐỊNH DẠNG SHEET!</span>
+                </div>
+                <p class="text-xs text-rose-600 mb-2">Dữ liệu nhập vào chưa đúng định dạng chuẩn. Vui lòng sửa lại và nhập lại Sheet:</p>
+                <ul id="errFormatList" class="text-xs text-rose-700 pl-5 space-y-1 m-0"></ul>
+              </div>
+              <button onclick="switchLeftTab('sheet')" class="btn-coral">
+                ✏️ Mở bảng Sheet để sửa &amp; nhập lại
+              </button>
+            </div>
+
+            <!-- Kết quả Step 2: Dữ liệu chưa sạch -->
+            <div id="rightUncleanError" class="hidden space-y-4">
+              <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200">
+                <div class="flex items-center gap-2 text-sm font-extrabold text-amber-800 mb-2">
+                  <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                  <span>Bước 2 — DỮ LIỆU CHƯA SẠCH / CHƯA ĐẠT CHUẨN!</span>
+                </div>
+                <p class="text-xs text-amber-700 mb-2">Sau khi làm sạch, vẫn còn mục chưa chuẩn hóa được nên cần quay về Bước 1 nhập lại:</p>
+                <ul id="errUncleanList" class="text-xs text-amber-800 pl-5 space-y-1 m-0"></ul>
+              </div>
+              <button onclick="switchLeftTab('sheet')" class="btn-coral">
+                ↩ Quay về Nhập Sheet &amp; Làm sạch lại
+              </button>
+            </div>
+
+            <!-- BƯỚC 2.5: XÁC NHẬN DỮ LIỆU SAU KHI LÀM SẠCH -->
+            <div id="rightVerifyClean" class="hidden space-y-3">
+              <div class="p-3 rounded-2xl bg-amber-50/80 border border-amber-200">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <span class="text-xs font-bold text-stone-800">Xác nhận dữ liệu sau làm sạch</span>
+                  <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">Chờ duyệt</span>
+                </div>
+                <p class="text-[11px] text-stone-600 m-0">
+                  Kiểm tra lại kết quả chuẩn hóa trước khi chuyển sang bước AI Phân tích:
+                </p>
+              </div>
+
+              <div id="rawPreviewWrap" class="hidden">
+                <label class="text-[10px] font-bold uppercase text-stone-500">Dữ liệu đọc từ file:</label>
+                <pre id="rawPreviewBox" class="mt-1 p-2 rounded-xl bg-stone-900/85 text-stone-100 text-[10.5px] max-h-24 overflow-y-auto whitespace-pre-wrap m-0"></pre>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div class="sm:col-span-2">
+                  <label class="text-[10px] font-bold uppercase text-stone-500">Khách hàng</label>
+                  <input id="vcClient" type="text" class="glass-input mt-0.5 !py-1.5" />
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold uppercase text-stone-500">Hạn (ngày)</label>
+                  <input id="vcDeadline" type="number" class="glass-input mt-0.5 !py-1.5" />
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold uppercase text-stone-500">Ngân sách (VNĐ)</label>
+                  <input id="vcBudget" type="number" class="glass-input mt-0.5 !py-1.5" />
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold uppercase text-stone-500">Chiết khấu (%)</label>
+                  <input id="vcDiscount" type="number" step="0.5" class="glass-input mt-0.5 !py-1.5" />
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold uppercase text-stone-500">Yêu cầu SLA</label>
+                <input id="vcSla" type="text" class="glass-input mt-0.5 !py-1.5" />
+              </div>
+
+              <div class="overflow-x-auto max-h-44 border border-stone-200 rounded-xl bg-white/80">
+                <table class="w-full text-left border-collapse text-[11px]">
+                  <thead>
+                    <tr class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-[10px]">
+                      <th class="py-1.5 px-2">Dữ liệu file gửi</th>
+                      <th class="py-1.5 px-2">SKU chuẩn hóa</th>
+                      <th class="py-1.5 px-2">Tên thiết bị sau làm sạch</th>
+                      <th class="py-1.5 px-2 w-16">SL</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vcRowsBody" class="divide-y divide-stone-100"></tbody>
+                </table>
+              </div>
+
+              <div class="flex flex-wrap gap-2.5 pt-1">
+                <button onclick="confirmCleanAndAnalyze()" class="btn-coral" style="background: linear-gradient(135deg, #10b981, #059669);">
+                  Tiếp tục phân tích (Bước 3) →
+                </button>
+                <button onclick="rejectCleanBackToStep1()" class="px-4 py-2 rounded-xl bg-white text-stone-700 border border-stone-200 text-xs font-semibold cursor-pointer hover:bg-stone-50">
+                  Sửa lại (Bước 1)
+                </button>
+              </div>
+            </div>
+
+            <!-- Kết quả Step 3, 4, 5: Đầy đủ & Tương tác -->
+            <div id="rightSuccessResult" class="hidden space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/70 pb-2.5">
+                <div class="flex gap-1.5">
+                  <button id="rtab-analysis" onclick="switchRightTab('analysis')" class="px-3 py-1.5 rounded-lg bg-white text-xs font-bold text-stone-900 shadow-sm border-0 cursor-pointer">3. AI Phân tích</button>
+                  <button id="rtab-feedback" onclick="switchRightTab('feedback')" class="px-3 py-1.5 rounded-lg bg-transparent text-xs font-semibold text-stone-600 border-0 cursor-pointer">4. Feedback</button>
+                  <button id="rtab-output" onclick="switchRightTab('output')" class="px-3 py-1.5 rounded-lg bg-transparent text-xs font-semibold text-stone-600 border-0 cursor-pointer">5. Báo cáo / Dashboard</button>
+                </div>
+                <span id="rightClientTag" class="text-[11px] font-bold text-stone-600"></span>
+              </div>
+
+              <!-- Sub-tab 3: AI Phân tích -->
+              <div id="rpane-analysis" class="space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  <div class="p-3 rounded-xl bg-emerald-50/90 border border-emerald-200">
+                    <div class="text-[11px] font-extrabold text-emerald-800 mb-1">✅ Chào giá được ngay</div>
+                    <ul id="resReadyList" class="text-[11px] text-emerald-700 pl-4 m-0 space-y-0.5"></ul>
+                  </div>
+                  <div class="p-3 rounded-xl bg-amber-50/90 border border-amber-200">
+                    <div class="text-[11px] font-extrabold text-amber-800 mb-1">⚠️ Hạng mục cần duyệt</div>
+                    <ul id="resVerifyList" class="text-[11px] text-amber-700 pl-4 m-0 space-y-0.5"></ul>
+                  </div>
+                </div>
+                <div class="overflow-x-auto max-h-48">
+                  <table class="w-full text-left border-collapse text-[11px]">
+                    <thead>
+                      <tr class="border-b border-stone-200 text-stone-500 uppercase">
+                        <th class="py-1.5">Hạng mục</th>
+                        <th class="py-1.5">SL</th>
+                        <th class="py-1.5">Tồn</th>
+                        <th class="py-1.5">Thành tiền</th>
+                        <th class="py-1.5">Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody id="resStockTable" class="divide-y divide-stone-100"></tbody>
+                  </table>
+                </div>
+                <div class="flex justify-end">
+                  <button onclick="switchRightTab('feedback')" class="btn-coral text-xs !py-2">
+                    Tiếp: Xem AI Xác nhận &amp; Feedback →
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sub-tab 4: Feedback -->
+              <div id="rpane-feedback" class="hidden space-y-3">
+                <div class="p-3.5 rounded-xl bg-white/85 border border-stone-200">
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-xs font-extrabold text-stone-800">💬 AI Agent Xác nhận lại &amp; Đưa ra Feedback:</span>
+                    <span id="retryCounterBadge" class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 text-[10px] font-bold">Lần phân tích: 1/2</span>
+                  </div>
+                  <ul id="resFeedbackList" class="text-xs text-stone-700 pl-5 m-0 space-y-1"></ul>
+                </div>
+
+                <!-- Cảnh báo ngắt vòng lặp khi đã phân tích lại đủ 2 lần -->
+                <div id="loopBreakerAlert" class="hidden p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 space-y-2">
+                  <div class="font-extrabold">⛔ Đã đạt giới hạn phân tích lại (2/2 lần) — Ngắt vòng lặp tự động!</div>
+                  <p class="m-0 text-rose-700">Không thể tự tối ưu thêm từ dữ liệu hiện tại. Vui lòng chọn <strong>Sửa lại Sheet gốc (Bước 1)</strong> hoặc <strong>Chuyển cấp Quản lý phê duyệt trực tiếp</strong>.</p>
+                </div>
+
+                <div id="feedbackInputWrap">
+                  <label class="text-[10px] font-bold uppercase text-stone-500">Nếu chưa OK, nhập điều chỉnh (VD: "Chiết khấu 5%", "15 ngày", "SLA chuẩn") hoặc để trống để AI tự tối ưu:</label>
+                  <input id="fbAdjustInput" type="text" class="glass-input mt-1" placeholder="VD: Giảm chiết khấu còn 5% và chuyển SLA 8x5..." />
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                  <button onclick="acceptFeedback()" class="btn-coral" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    ✅ Feedback OK — Xuất Báo cáo / Dashboard
+                  </button>
+                  <button id="btnReanalyze" onclick="reanalyzeFeedback()" class="px-3.5 py-2.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold cursor-pointer hover:bg-rose-100">
+                    🔄 Không OK — AI Điều chỉnh &amp; Phân tích lại
+                  </button>
+                  <button onclick="backToSheetEdit()" class="px-3.5 py-2.5 rounded-xl bg-white text-stone-700 border border-stone-200 text-xs font-bold cursor-pointer hover:bg-stone-50">
+                    ✏️ Sửa lại Sheet gốc (Bước 1)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sub-tab 5: Xuất Báo cáo / Dashboard -->
+              <div id="rpane-output" class="hidden space-y-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div class="p-2.5 rounded-xl bg-white/85 border border-white">
+                    <div class="text-[10px] text-stone-500 font-semibold">Giá chào thầu</div>
+                    <div id="outFinalPrice" class="text-sm font-extrabold text-stone-900">0 đ</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-white/85 border border-white">
+                    <div class="text-[10px] text-stone-500 font-semibold">Tiến độ</div>
+                    <div id="outLead" class="text-sm font-extrabold text-stone-900">0 ngày</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-white/85 border border-white">
+                    <div class="text-[10px] text-stone-500 font-semibold">Công kỹ thuật</div>
+                    <div id="outManday" class="text-sm font-extrabold text-stone-900">0 công</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-white/85 border border-white">
+                    <div class="text-[10px] text-stone-500 font-semibold">Cấp duyệt</div>
+                    <div id="outAuth" class="text-xs font-extrabold text-rose-600 mt-0.5">—</div>
+                  </div>
+                </div>
+
+                <!-- Dashboard Bar -->
+                <div class="p-3 rounded-xl bg-white/85 border border-white text-xs">
+                  <div class="font-bold text-stone-700 mb-1.5">Dashboard Cơ cấu Chi phí (Thiết bị vs Dịch vụ)</div>
+                  <div class="w-full h-3.5 rounded-full bg-stone-200 overflow-hidden flex mb-1.5">
+                    <div id="outBarHw" class="bg-rose-500 h-full transition-all duration-700" style="width: 80%"></div>
+                    <div id="outBarSvc" class="bg-emerald-500 h-full transition-all duration-700" style="width: 20%"></div>
+                  </div>
+                  <div class="flex justify-between text-[11px] text-stone-600 font-semibold">
+                    <span id="outLblHw">Phần cứng: 0 đ</span>
+                    <span id="outLblSvc">Dịch vụ &amp; SLA: 0 đ</span>
+                  </div>
+                </div>
+
+                <!-- Thông báo minh bạch gửi khách hàng nếu có điều chỉnh -->
+                <div id="customerNoticeCard" class="hidden p-3.5 rounded-xl bg-amber-50/95 border border-amber-200 text-xs space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-extrabold text-amber-900">📢 Thông báo Điều chỉnh gửi Khách hàng (Minh bạch thay đổi):</span>
+                    <button onclick="copyCustomerNotice()" class="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[10px] font-bold border-0 cursor-pointer hover:bg-amber-700">📋 Copy Thư</button>
+                  </div>
+                  <p class="m-0 text-amber-800 text-[11px]">Các điều chỉnh này cũng đã được tự động chèn vào <strong>Mục 4 trong file Báo cáo Word (.DOCX)</strong> để khách hàng nắm rõ.</p>
+                  <textarea id="customerNoticeDraft" rows="5" class="glass-input !text-[11px] !bg-white"></textarea>
+                </div>
+
+                <div class="flex flex-wrap gap-2.5 pt-1">
+                  <button onclick="downloadDocx()" class="btn-coral">
+                    <i data-lucide="file-down" class="w-4 h-4"></i> Xuất Báo cáo Word (.DOCX)
+                  </button>
+                  <button onclick="saveDossier()" class="px-4 py-2.5 rounded-xl bg-stone-800 text-white text-xs font-bold border-0 cursor-pointer hover:bg-stone-900 inline-flex items-center gap-1.5">
+                    <i data-lucide="save" class="w-4 h-4 text-emerald-400"></i> Lưu vào Hồ sơ gần đây
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW CATALOG -->
+      <div id="view-catalog" class="hidden frost-card">
+        <h3 class="text-sm font-extrabold text-stone-800 mb-3">📦 Bảng giá Master &amp; Tồn khả dụng Thiên Minh</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-stone-200 text-stone-500 uppercase">
+                <th class="py-2">SKU</th>
+                <th class="py-2">Thiết bị / Dịch vụ</th>
+                <th class="py-2">Nhóm</th>
+                <th class="py-2">Đơn giá</th>
+                <th class="py-2">Tồn kho</th>
+                <th class="py-2">Lead-time</th>
+              </tr>
+            </thead>
+            <tbody id="catalogTableBody" class="divide-y divide-stone-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VIEW POLICY -->
+      <div id="view-policy" class="hidden frost-card space-y-3 text-xs">
+        <h3 class="text-sm font-extrabold text-stone-800 m-0">🛡️ Chính sách Chiết khấu &amp; Thẩm quyền Phê duyệt</h3>
+        <div class="p-3.5 rounded-xl bg-emerald-50/90 border border-emerald-200"><strong>1. Nhân viên Kinh doanh tự quyết:</strong> Chiết khấu ≤ 5%, đủ tồn kho, đáp ứng tiến độ, SLA tiêu chuẩn 8x5.</div>
+        <div class="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200"><strong>2. Trưởng phòng Kinh doanh duyệt:</strong> Chiết khấu từ 5.1% – 10%, hoặc yêu cầu SLA khẩn cấp 24/7/2h.</div>
+        <div class="p-3.5 rounded-xl bg-rose-50/90 border border-rose-200"><strong>3. Ban Giám đốc phê duyệt:</strong> Chiết khấu &gt; 10%, thiết bị ngoài danh mục, hoặc tiến độ vượt năng lực kỹ thuật.</div>
+      </div>
+
+      <!-- VIEW HISTORY -->
+      <div id="view-history" class="hidden frost-card">
+        <h3 class="text-sm font-extrabold text-stone-800 mb-3">📚 Lịch sử Hồ sơ Chào giá Đã lưu</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-stone-200 text-stone-500 uppercase">
+                <th class="py-2">Mã HS</th>
+                <th class="py-2">Khách hàng</th>
+                <th class="py-2">Hạn</th>
+                <th class="py-2">CK</th>
+                <th class="py-2">Giá chào</th>
+                <th class="py-2">Cấp duyệt</th>
+                <th class="py-2">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody" class="divide-y divide-stone-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- FLOATING CHATBOT -->
+  <button class="chat-fab" onclick="toggleChat()">
+    <i data-lucide="bot" class="w-4 h-4 text-amber-300"></i>
+    <span>Trợ lý AI Thiên Minh</span>
+  </button>
+
+  <div id="chatPopup" class="chat-popup closed">
+    <div class="px-4 py-3 border-b border-white/15 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span class="text-xs font-bold">Trợ lý AI Copilot</span>
+      </div>
+      <button onclick="toggleChat()" class="text-white/60 hover:text-white bg-transparent border-0 cursor-pointer">✕</button>
+    </div>
+    <div id="chatMsgs" class="p-3 h-64 overflow-y-auto space-y-2 text-xs">
+      <div class="p-2.5 rounded-xl bg-white/10 text-white/90">
+        Xin chào! Tôi hiểu toàn bộ bảng giá, tồn kho và hồ sơ bạn đang mở. Hãy hỏi tôi bất kỳ điều gì!
+      </div>
+    </div>
+    <form onsubmit="sendChat(event)" class="p-2.5 border-t border-white/15 flex gap-2">
+      <input id="chatInp" type="text" class="flex-1 px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 text-xs outline-none" placeholder="Hỏi AI..." />
+      <button type="submit" class="px-3.5 py-2 rounded-xl bg-rose-500 text-white text-xs font-bold border-0 cursor-pointer hover:bg-rose-600">Gửi</button>
+    </form>
+  </div>
+
+  <!-- HOVER INSPECTOR (Ẩn để giao diện sạch, không rối mắt) -->
+  <div id="hoverInspector" style="display: none;"></div>
+
+  <!-- TOAST -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-stone-900/90 text-white px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50"></div>
+
+  <script>
+    let state = {
+      scenarios: [],
+      catalog: [],
+      dossiers: [],
+      selectedScenarioId: null,
+      rows: [],
+      isExcelMode: false,
+      excelColumns: [],
+      excelRows: [],
+      columnMapping: {},
+      sheetViewMode: "form",
+      cleanedData: null,
+      evalResult: null,
+      retryCount: 0,
+      chatHistory: []
+    };
+
+    const fmtMoney = (n) => Number(n || 0).toLocaleString("vi-VN") + " đ";
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.remove("opacity-0");
+      setTimeout(() => t.classList.add("opacity-0"), 2600);
+    }
+
+    // Tắt các popup hover xâm lấn để giữ giao diện sạch, gọn, không rối mắt
+    function showHoverInspector(el, title, badge, htmlBody, preferRight = false) {}
+    function hideHoverInspector() {
+      const box = document.getElementById("hoverInspector");
+      if (box) box.classList.remove("visible");
+    }
+    function hoverPreviewNav() {}
+    function hoverPreviewKpi() {}
+    function hoverPreviewPipe() {}
+    function hoverPreviewScenario() {}
+
+    // Quản lý hiển thị Bảng theo định dạng File Excel gốc
+    function setSheetViewMode(mode) {
+      state.sheetViewMode = mode;
+      const isExcel = (mode === "excel" && state.excelColumns && state.excelColumns.length > 0);
+      const exView = document.getElementById("excelTableView");
+      const formView = document.getElementById("standardFormView");
+      if (exView) exView.classList.toggle("hidden", !isExcel);
+      if (formView) formView.classList.toggle("hidden", isExcel);
+      const btnEx = document.getElementById("btnViewExcel");
+      const btnFm = document.getElementById("btnViewForm");
+      if (btnEx) {
+        btnEx.className = isExcel
+          ? "px-2 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-bold border-0 cursor-pointer"
+          : "px-2 py-0.5 rounded-lg bg-white text-stone-700 text-[10px] font-semibold border border-stone-200 cursor-pointer";
+      }
+      if (btnFm) {
+        btnFm.className = !isExcel
+          ? "px-2 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-bold border-0 cursor-pointer"
+          : "px-2 py-0.5 rounded-lg bg-white text-stone-700 text-[10px] font-semibold border border-stone-200 cursor-pointer";
+      }
+    }
+
+    function renderExcelTable() {
+      if (!state.excelColumns || !state.excelColumns.length) {
+        const exView = document.getElementById("excelTableView");
+        const formView = document.getElementById("standardFormView");
+        const tog = document.getElementById("excelModeToggle");
+        if (exView) exView.classList.add("hidden");
+        if (formView) formView.classList.remove("hidden");
+        if (tog) tog.classList.add("hidden");
+        return;
+      }
+      const tog = document.getElementById("excelModeToggle");
+      if (tog) tog.classList.remove("hidden");
+      const thead = document.getElementById("excelThHead");
+      const tbody = document.getElementById("excelTbBody");
+
+      thead.innerHTML = `<tr>
+        <th class="py-1.5 px-2 text-center w-8">#</th>
+        ${state.excelColumns.map(c => {
+          let roleBadge = "";
+          if (state.columnMapping) {
+            if (state.columnMapping.item === c) roleBadge = `<span class="ml-1 text-[9px] px-1 py-0.2 rounded bg-emerald-100 text-emerald-800">Tên</span>`;
+            else if (state.columnMapping.sku === c) roleBadge = `<span class="ml-1 text-[9px] px-1 py-0.2 rounded bg-rose-100 text-rose-800">SKU</span>`;
+            else if (state.columnMapping.qty === c) roleBadge = `<span class="ml-1 text-[9px] px-1 py-0.2 rounded bg-sky-100 text-sky-800">SL</span>`;
+            else if (state.columnMapping.spec === c) roleBadge = `<span class="ml-1 text-[9px] px-1 py-0.2 rounded bg-purple-100 text-purple-800">Spec</span>`;
+            else if (state.columnMapping.price === c) roleBadge = `<span class="ml-1 text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-800">Giá</span>`;
+          }
+          return `<th class="py-1.5 px-2">${c}${roleBadge}</th>`;
+        }).join("")}
+        <th class="py-1.5 px-2 text-center w-8">Xóa</th>
+      </tr>`;
+
+      tbody.innerHTML = (state.excelRows || []).map((row, rIdx) => `
+        <tr class="hover:bg-amber-50/50 transition">
+          <td class="py-1 px-1.5 text-center font-bold text-stone-400 text-[10px]">${rIdx + 1}</td>
+          ${state.excelColumns.map(c => `
+            <td class="py-1 px-1">
+              <input class="glass-input !py-0.5 !px-1.5 !text-[11px] !bg-white/95 min-w-[110px]"
+                     value="${row[c] !== undefined && row[c] !== null ? String(row[c]).replace(/"/g, '&quot;') : ''}"
+                     onchange="updateExcelCell(${rIdx}, '${c.replace(/'/g, "\\'")}', this.value)" />
+            </td>
+          `).join("")}
+          <td class="py-1 px-1.5 text-center">
+            <button onclick="removeExcelRow(${rIdx})" class="text-rose-500 hover:text-rose-700 font-bold text-xs bg-transparent border-0 cursor-pointer" title="Xóa dòng">✕</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function updateExcelCell(rIdx, col, val) {
+      if (state.excelRows && state.excelRows[rIdx]) {
+        state.excelRows[rIdx][col] = val;
+      }
+    }
+
+    function addExcelRow() {
+      if (!state.excelColumns || !state.excelColumns.length) return;
+      const newRow = {};
+      state.excelColumns.forEach(c => newRow[c] = "");
+      state.excelRows.push(newRow);
+      renderExcelTable();
+    }
+
+    function removeExcelRow(rIdx) {
+      if (state.excelRows) {
+        state.excelRows.splice(rIdx, 1);
+        renderExcelTable();
+      }
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById("glassSidebar");
+      sb.classList.toggle("collapsed");
+      const ic = document.getElementById("collapseIcon");
+      ic.style.transform = sb.classList.contains("collapsed") ? "rotate(180deg)" : "rotate(0deg)";
+    }
+
+    function toggleGlassControls() {
+      document.getElementById("glassPopover").classList.toggle("hidden");
+    }
+
+    function setBlur(val) {
+      document.documentElement.style.setProperty("--glass-blur", val + "px");
+      document.getElementById("blurVal").textContent = val + "px";
+    }
+
+    function setTheme(name) {
+      const themes = {
+        bronze: "linear-gradient(135deg, #5d412e 0%, #8b6850 38%, #ad8a70 72%, #4e3729 100%)",
+        emerald: "linear-gradient(135deg, #134e4a 0%, #0f766e 45%, #2dd4bf 100%)",
+        midnight: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)"
+      };
+      document.body.style.background = themes[name] || themes.bronze;
+    }
+
+    function toggleChat() {
+      document.getElementById("chatPopup").classList.toggle("closed");
+    }
+
+    async function bootstrap() {
+      try {
+        const res = await fetch("/api/bootstrap");
+        const data = await res.json();
+        state.scenarios = data.scenarios || [];
+        state.catalog = data.catalog || [];
+        state.dossiers = data.dossiers || [];
+        state.inboundRequests = data.inbound_requests || [];
+        const remHeader = document.getElementById("opsRemHeader");
+        if (remHeader) remHeader.textContent = data.rem_mandays;
+
+        renderScenarios();
+        renderInboundRequests();
+        renderCatalog();
+        renderHistory();
+        if (state.scenarios && state.scenarios[0]) selectScenario(state.scenarios[0].id);
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+        // Tự động kiểm tra yêu cầu mới từ Cổng Khách hàng (/khach-hang) mỗi 5 giây
+        setInterval(pollInbound, 5000);
+      } catch (err) {
+        console.error("Bootstrap error:", err);
+      }
+    }
+
+    async function pollInbound() {
+      try {
+        const res = await fetch("/api/inbound-requests");
+        const data = await res.json();
+        const prevNew = (state.inboundRequests || []).filter(r => r.status === "NEW").length;
+        state.inboundRequests = data.requests || [];
+        const curNew = state.inboundRequests.filter(r => r.status === "NEW").length;
+        renderInboundRequests();
+        if (curNew > prevNew) {
+          showToast("📩 Có yêu cầu mới từ Cổng Khách hàng!");
+        }
+      } catch (e) {}
+    }
+
+    function renderInboundRequests() {
+      const list = state.inboundRequests || [];
+      const newCount = list.filter(r => r.status === "NEW").length;
+      document.getElementById("inboundBadge").textContent = newCount;
+      const box = document.getElementById("inboundList");
+      if (!list.length) {
+        box.innerHTML = `<div class="p-3 rounded-xl bg-white/60 text-[11px] text-stone-500 text-center">Chưa có yêu cầu nào từ Cổng Khách hàng (/khach-hang) hoặc Google Sheet.</div>`;
+        return;
+      }
+      box.innerHTML = list.map(r => `
+        <div onclick="processInboundRequest('${r.request_code}')" class="scenario-box !p-3">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <span class="text-xs font-extrabold text-stone-800 truncate">${r.client_name}</span>
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold ${r.status === 'NEW' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">${r.status === 'NEW' ? 'MỚI' : 'ĐÃ XỬ LÝ'}</span>
+          </div>
+          <div class="text-[10.5px] text-stone-500">${r.request_code} • ${r.source} • ${r.created_at}</div>
+          <div class="text-[11px] font-bold text-rose-600 mt-1">Bấm để nạp &amp; AI phân tích ngay →</div>
+        </div>
+      `).join("");
+    }
+
+    async function processInboundRequest(code) {
+      const req = (state.inboundRequests || []).find(r => r.request_code === code);
+      if (!req) return;
+      state.cleanedData = req.cleaned_data;
+      state.retryCount = 0;
+
+      // Đồng bộ hiển thị vào form Sheet để tham chiếu
+      const raw = req.raw_sheet || {};
+      document.getElementById("shClient").value = req.client_name || "";
+      document.getElementById("shDeadline").value = raw.deadline || req.cleaned_data?.deadline_days || "10";
+      document.getElementById("shBudget").value = raw.budget || req.cleaned_data?.budget || "0";
+      document.getElementById("shDiscount").value = raw.discount || req.cleaned_data?.discount_pct || "0";
+      document.getElementById("shSla").value = raw.sla || req.cleaned_data?.sla || "";
+      if (raw.rows) {
+        state.rows = JSON.parse(JSON.stringify(raw.rows));
+        renderSheetRows();
+      }
+
+      state.rawPreview = "";
+      setPipeNode("pnode-1", "done");
+      setPipeNode("pnode-c1", "done");
+      setPipeNode("pnode-2", "done");
+      setPipeNode("pnode-c2", "done");
+      showVerifyCleanScreen();
+      await fetch(`/api/inbound-requests/${code}/processed`, { method: "POST" });
+      await pollInbound();
+    }
+
+    async function syncGoogleSheet() {
+      const url = document.getElementById("gsheetUrlInput").value.trim();
+      if (!url) {
+        showToast("Vui lòng dán link Google Sheet trước!");
+        return;
+      }
+      showToast("🔄 Đang đồng bộ dữ liệu từ Google Sheet...");
+      const res = await fetch("/api/sync-google-sheet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sheet_url: url })
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        showToast("❌ " + data.error);
+        return;
+      }
+      state.inboundRequests = data.requests || [];
+      renderInboundRequests();
+      showToast(`✅ Đã đồng bộ từ Google Sheet (${data.request_code})!`);
+    }
+
+    function renderScenarios() {
+      const pills = {
+        s1: `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Chuẩn / Trong quyền</span>`,
+        s2: `<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold">Sai định dạng</span>`,
+        s3: `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">Chưa sạch data</span>`,
+        s4: `<span class="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold">Trưởng phòng duyệt</span>`
+      };
+      document.getElementById("leftScenariosBox").innerHTML = state.scenarios.map(s => `
+        <div id="scbox-${s.id}" onclick="selectScenario('${s.id}')" class="scenario-box ${state.selectedScenarioId === s.id ? 'selected' : ''}">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <div class="text-xs font-extrabold text-stone-800">${s.code}: ${s.name}</div>
+            ${pills[s.id] || ""}
+          </div>
+          <div class="text-[11px] text-stone-500 leading-snug">${s.client} — ${s.desc}</div>
+        </div>
+      `).join("");
+    }
+
+    function selectScenario(id) {
+      const sc = state.scenarios.find(x => x.id === id);
+      if (!sc) return;
+      state.selectedScenarioId = id;
+      state.isExcelMode = false;
+      state.excelColumns = [];
+      state.excelRows = [];
+      setSheetViewMode("form");
+      const tog = document.getElementById("excelModeToggle");
+      if (tog) tog.classList.add("hidden");
+
+      document.querySelectorAll(".scenario-box").forEach(el => el.classList.remove("selected"));
+      const cur = document.getElementById(`scbox-${id}`);
+      if (cur) cur.classList.add("selected");
+
+      document.getElementById("shClient").value = sc.client;
+      document.getElementById("shDeadline").value = sc.deadline;
+      document.getElementById("shBudget").value = sc.budget;
+      document.getElementById("shDiscount").value = sc.discount;
+      document.getElementById("shSla").value = sc.sla;
+      state.rows = JSON.parse(JSON.stringify(sc.rows));
+      renderSheetRows();
+    }
+
+    function renderSheetRows() {
+      document.getElementById("sheetRowsEditor").innerHTML = state.rows.map((r, i) => `
+        <div class="grid grid-cols-12 gap-1.5 items-center bg-white/60 p-1.5 rounded-xl border border-white">
+          <input class="glass-input col-span-5 !py-1 !text-[11px]" value="${r.item || ''}" onchange="state.rows[${i}].item=this.value" placeholder="Hạng mục" />
+          <input class="glass-input col-span-3 !py-1 !text-[11px]" value="${r.spec || ''}" onchange="state.rows[${i}].spec=this.value" placeholder="Thông số" />
+          <input class="glass-input col-span-2 !py-1 !text-[11px]" value="${r.qty || '1'}" onchange="state.rows[${i}].qty=this.value" placeholder="SL" />
+          <button onclick="state.rows.splice(${i},1);renderSheetRows()" class="col-span-2 text-rose-500 font-bold text-xs bg-transparent border-0 cursor-pointer">Xóa</button>
+        </div>
+      `).join("");
+    }
+
+    function addSheetRow() {
+      state.rows.push({ item: "", spec: "", qty: "1", mandatory: "" });
+      renderSheetRows();
+    }
+
+    function switchLeftTab(tab) {
+      document.getElementById("leftInboundBox").classList.toggle("hidden", tab !== "inbound");
+      document.getElementById("leftScenariosBox").classList.toggle("hidden", tab !== "scenarios");
+      document.getElementById("leftSheetEditor").classList.toggle("hidden", tab !== "sheet");
+      document.getElementById("tabLeftInbound").className = tab === "inbound"
+        ? "px-2 py-1 rounded-lg bg-white text-[11px] font-bold text-stone-800 shadow-sm border-0 cursor-pointer inline-flex items-center gap-1"
+        : "px-2 py-1 rounded-lg bg-transparent text-[11px] font-semibold text-stone-500 border-0 cursor-pointer inline-flex items-center gap-1";
+      document.getElementById("tabLeftScen").className = tab === "scenarios"
+        ? "px-2 py-1 rounded-lg bg-white text-[11px] font-bold text-stone-800 shadow-sm border-0 cursor-pointer"
+        : "px-2 py-1 rounded-lg bg-transparent text-[11px] font-semibold text-stone-500 border-0 cursor-pointer";
+      document.getElementById("tabLeftEdit").className = tab === "sheet"
+        ? "px-2 py-1 rounded-lg bg-white text-[11px] font-bold text-stone-800 shadow-sm border-0 cursor-pointer"
+        : "px-2 py-1 rounded-lg bg-transparent text-[11px] font-semibold text-stone-500 border-0 cursor-pointer";
+    }
+
+    async function uploadSheetFile(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload-sheet", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.ok) {
+        if (data.is_excel && data.columns && data.columns.length) {
+          state.isExcelMode = true;
+          state.excelColumns = data.columns;
+          state.excelRows = data.raw_rows;
+          state.columnMapping = data.column_mapping;
+          state.rows = data.rows;
+          if (data.client) document.getElementById("shClient").value = data.client;
+          if (data.budget && data.budget !== "0") document.getElementById("shBudget").value = data.budget;
+          if (data.deadline) document.getElementById("shDeadline").value = data.deadline;
+          document.getElementById("excelFileLabel").textContent = `${data.filename} (${data.columns.length} cột • ${data.raw_rows.length} dòng)`;
+          renderExcelTable();
+          setSheetViewMode("excel");
+          switchLeftTab("sheet");
+          showToast(`📁 Đã nạp file: ${data.filename} (${data.columns.length} cột)`);
+        } else {
+          state.isExcelMode = false;
+          state.rows = data.rows;
+          renderSheetRows();
+          setSheetViewMode("form");
+          switchLeftTab("sheet");
+          showToast("Đã nạp file " + data.filename);
+        }
+      } else {
+        showToast("❌ " + (data.error || "Lỗi đọc file"));
+      }
+      input.value = "";
+    }
+
+    function setPipeNode(id, cls) {
+      const el = document.getElementById(id);
+      if (el) el.className = "pipe-node " + cls;
+    }
+
+    function resetPipeVisual() {
+      ["pnode-1","pnode-c1","pnode-2","pnode-c2","pnode-v","pnode-3","pnode-4","pnode-5"].forEach(id => setPipeNode(id, ""));
+    }
+
+    function getSheetPayload() {
+      // Nếu đang ở chế độ file Excel, đồng bộ danh sách hạng mục từ dữ liệu bảng Excel người dùng sửa
+      if (state.isExcelMode && state.excelRows && state.excelRows.length && state.columnMapping) {
+        const colItem = state.columnMapping.item;
+        const colSku = state.columnMapping.sku;
+        const colSpec = state.columnMapping.spec;
+        const colQty = state.columnMapping.qty;
+        const colMand = state.columnMapping.mandatory;
+        state.rows = state.excelRows.map(r => {
+          let itemVal = String(r[colItem] || "").trim();
+          let skuVal = colSku ? String(r[colSku] || "").trim() : "";
+          let specVal = colSpec ? String(r[colSpec] || "").trim() : "";
+          if (skuVal && !itemVal.toLowerCase().includes(skuVal.toLowerCase())) {
+            itemVal = itemVal ? `${itemVal} (${skuVal})` : skuVal;
+          }
+          let qDigits = (String(r[colQty] || "1")).match(/\d+/);
+          let cleanQty = qDigits ? qDigits[0] : "1";
+          return {
+            item: itemVal,
+            spec: specVal || "Theo thông số file Excel",
+            qty: cleanQty,
+            mandatory: colMand ? String(r[colMand] || "").trim() : "Theo tiêu chuẩn chào thầu",
+            raw_data: r
+          };
+        }).filter(r => r.item);
+      }
+
+      return {
+        client: document.getElementById("shClient").value,
+        deadline: document.getElementById("shDeadline").value,
+        budget: document.getElementById("shBudget").value,
+        discount: document.getElementById("shDiscount").value,
+        sla: document.getElementById("shSla").value,
+        rows: state.rows,
+        columns: state.excelColumns || [],
+        raw_rows: state.excelRows || []
+      };
+    }
+
+    function showRightPane(which) {
+      ["rightEmptyState", "rightFormatError", "rightUncleanError", "rightVerifyClean", "rightSuccessResult"].forEach(id => {
+        document.getElementById(id).classList.toggle("hidden", id !== which);
+      });
+    }
+
+    // ĐẨY BẤT KỲ FILE RAW NÀO VÀO AI AGENT -> KIỂM ĐỊNH DẠNG -> LÀM SẠCH -> CHỜ XÁC MINH
+    async function ingestRawFile(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      document.getElementById("rawFileStatus").textContent = "⏳ Đang đọc file: " + file.name;
+      resetPipeVisual();
+      setPipeNode("pnode-1", "active");
+      document.getElementById("pipelineBadge").textContent = "ĐANG ĐỌC FILE...";
+
+      const fd = new FormData();
+      fd.append("file", file);
+      try {
+        const res = await fetch("/api/ingest-raw-file", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!data.ok) {
+          showToast("❌ " + data.error);
+          document.getElementById("rawFileStatus").textContent = "📎 Đẩy File Raw bất kỳ (.XLSX, .CSV, .DOCX, .PDF, .TXT)";
+          return;
+        }
+
+        document.getElementById("rawFileStatus").textContent = "📄 Đã nạp file: " + data.filename;
+        state.rawPreview = data.raw_preview || "";
+
+        // Điền dữ liệu bóc tách vào bảng Sheet
+        const ex = data.extracted_sheet;
+        document.getElementById("shClient").value = ex.client || "";
+        document.getElementById("shDeadline").value = ex.deadline || "";
+        document.getElementById("shBudget").value = ex.budget || "0";
+        document.getElementById("shDiscount").value = ex.discount || "0";
+        document.getElementById("shSla").value = ex.sla || "";
+        state.rows = ex.rows || [];
+
+        // Nếu là file Excel, kích hoạt chế độ xem đúng theo cấu trúc cột gốc của file
+        if (data.is_excel && data.columns && data.columns.length) {
+          state.isExcelMode = true;
+          state.excelColumns = data.columns;
+          state.excelRows = data.raw_rows;
+          state.columnMapping = data.column_mapping;
+          document.getElementById("excelFileLabel").textContent = `${data.filename} (${data.columns.length} cột • ${data.raw_rows.length} dòng)`;
+          renderExcelTable();
+          setSheetViewMode("excel");
+        } else {
+          state.isExcelMode = false;
+          renderSheetRows();
+          setSheetViewMode("form");
+        }
+        switchLeftTab("sheet");
+
+        setPipeNode("pnode-1", "done");
+        if (!data.validation.valid_format) {
+          setPipeNode("pnode-c1", "error");
+          document.getElementById("pipelineBadge").textContent = "LỖI ĐỊNH DẠNG";
+          document.getElementById("errFormatList").innerHTML = data.validation.errors.map(e => `<li>${e}</li>`).join("");
+          showRightPane("rightFormatError");
+          showToast("❌ File thiếu thông tin hoặc sai định dạng — vui lòng sửa lại!");
+          return;
+        }
+
+        setPipeNode("pnode-c1", "done");
+        setPipeNode("pnode-2", "done");
+        state.cleanedData = data.cleaning.cleaned_data;
+        if (!data.cleaning.is_clean) {
+          setPipeNode("pnode-c2", "error");
+          document.getElementById("pipelineBadge").textContent = "DỮ LIỆU CHƯA SẠCH";
+          document.getElementById("errUncleanList").innerHTML = data.cleaning.unclean_issues.map(e => `<li>${e}</li>`).join("");
+          showRightPane("rightUncleanError");
+          showToast("⚠️ Có mục chưa chuẩn hóa được — quay về sửa lại!");
+          return;
+        }
+
+        setPipeNode("pnode-c2", "done");
+        showVerifyCleanScreen();
+      } catch (e) {
+        showToast("Lỗi tải file: " + e.message);
+      } finally {
+        input.value = "";
+      }
+    }
+
+    // HIỂN THỊ XÁC NHẬN DỮ LIỆU SAU KHI LÀM SẠCH (GỌN GÀNG, ĐÚNG THEO FILE GỬI)
+    function showVerifyCleanScreen() {
+      const cd = state.cleanedData;
+      if (!cd) return;
+      setPipeNode("pnode-v", "active");
+      document.getElementById("pipelineBadge").textContent = "CHỜ XÁC NHẬN DỮ LIỆU";
+
+      const hasRaw = Boolean(state.rawPreview && state.rawPreview.trim());
+      document.getElementById("rawPreviewWrap").classList.toggle("hidden", !hasRaw);
+      if (hasRaw) document.getElementById("rawPreviewBox").textContent = state.rawPreview;
+
+      document.getElementById("vcClient").value = cd.client || "";
+      document.getElementById("vcDeadline").value = cd.deadline_days || 10;
+      document.getElementById("vcBudget").value = cd.budget || 0;
+      document.getElementById("vcDiscount").value = cd.discount_pct || 0;
+      document.getElementById("vcSla").value = cd.sla || "8x5 Tiêu chuẩn NBD";
+
+      document.getElementById("vcRowsBody").innerHTML = (cd.rows || []).map((r, i) => {
+        let rawHtml = `<span class="text-stone-700 font-medium">${r.raw_item || r.clean_name}</span>`;
+        if (r.raw_data && typeof r.raw_data === "object") {
+          const chips = Object.entries(r.raw_data)
+            .filter(([k, v]) => v !== "" && v !== null && !k.startsWith("_"))
+            .slice(0, 4)
+            .map(([k, v]) => `<span class="inline-block text-[9.5px] bg-stone-100 px-1.5 py-0.5 rounded mr-1 mb-0.5 text-stone-600"><strong>${k}:</strong> ${v}</span>`)
+            .join("");
+          if (chips) rawHtml = `<div class="max-w-xs">${chips}</div>`;
+        }
+        return `
+          <tr>
+            <td class="py-1.5 px-2">${rawHtml}</td>
+            <td class="py-1.5 px-2 font-mono font-bold text-rose-600">${r.sku}</td>
+            <td class="py-1.5 px-2"><input class="glass-input !py-1 !text-[11px]" value="${r.clean_name}" onchange="state.cleanedData.rows[${i}].clean_name=this.value" /></td>
+            <td class="py-1.5 px-2"><input type="number" min="1" class="glass-input !py-1 !text-[11px]" value="${r.qty}" onchange="state.cleanedData.rows[${i}].qty=Number(this.value||1)" /></td>
+          </tr>
+        `;
+      }).join("");
+
+      showRightPane("rightVerifyClean");
+      showToast("🛡️ Đã làm sạch xong — Vui lòng kiểm tra và xác nhận.");
+    }
+
+    async function confirmCleanAndAnalyze() {
+      // Lấy lại mọi chỉnh sửa thủ công của người nhập tại bước xác minh
+      if (state.cleanedData) {
+        state.cleanedData.client = document.getElementById("vcClient").value.trim() || state.cleanedData.client;
+        state.cleanedData.deadline_days = Number(document.getElementById("vcDeadline").value || 10);
+        state.cleanedData.orig_deadline_days = state.cleanedData.deadline_days;
+        state.cleanedData.budget = Number(document.getElementById("vcBudget").value || 0);
+        state.cleanedData.discount_pct = Number(document.getElementById("vcDiscount").value || 0);
+        state.cleanedData.orig_discount_pct = state.cleanedData.discount_pct;
+        state.cleanedData.sla = document.getElementById("vcSla").value.trim() || "8x5 Tiêu chuẩn NBD";
+        state.cleanedData.orig_sla = state.cleanedData.sla;
+      }
+      setPipeNode("pnode-v", "done");
+      setPipeNode("pnode-3", "active");
+      document.getElementById("pipelineBadge").textContent = "AI AGENT ĐANG PHÂN TÍCH...";
+      state.retryCount = 0;
+      await runAnalyzeStep("", false);
+    }
+
+    function rejectCleanBackToStep1() {
+      setPipeNode("pnode-v", "error");
+      switchLeftTab("sheet");
+      showRightPane("rightEmptyState");
+      document.getElementById("pipelineBadge").textContent = "NGƯỜI NHẬP YÊU CẦU SỬA LẠI";
+      showToast("✏️ Đã quay lại Bước 1 để bạn chỉnh sửa lại dữ liệu gốc!");
+    }
+
+    // CHẠY TOÀN BỘ LUỒNG: NHẬP SHEET -> KIỂM TRA -> LÀM SẠCH -> NGƯỜI NHẬP XÁC MINH -> AI PHÂN TÍCH
+    async function startFullPipeline() {
+      const btn = document.getElementById("runPipelineBtn");
+      btn.disabled = true;
+      btn.innerHTML = `<div class="spinner"></div><span>AI Agent đang chạy quy trình...</span>`;
+      resetPipeVisual();
+      state.rawPreview = "";
+
+      try {
+        const payload = getSheetPayload();
+        setPipeNode("pnode-1", "done");
+        setPipeNode("pnode-c1", "active");
+        document.getElementById("pipelineBadge").textContent = "ĐANG KIỂM TRA ĐỊNH DẠNG...";
+
+        await new Promise(r => setTimeout(r, 220));
+        const valRes = await fetch("/api/validate-sheet", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+        });
+        const valData = await valRes.json();
+
+        if (!valData.valid_format) {
+          setPipeNode("pnode-c1", "error");
+          document.getElementById("pipelineBadge").textContent = "LỖI ĐỊNH DẠNG SHEET";
+          document.getElementById("errFormatList").innerHTML = valData.errors.map(e => `<li>${e}</li>`).join("");
+          showRightPane("rightFormatError");
+          showToast("❌ Sai định dạng Sheet — vui lòng nhập lại!");
+          return;
+        }
+
+        setPipeNode("pnode-c1", "done");
+        setPipeNode("pnode-2", "active");
+        document.getElementById("pipelineBadge").textContent = "ĐANG LÀM SẠCH DỮ LIỆU...";
+        await new Promise(r => setTimeout(r, 220));
+
+        const cleanRes = await fetch("/api/clean-sheet", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+        });
+        const cleanData = await cleanRes.json();
+        state.cleanedData = cleanData.cleaned_data;
+
+        if (!cleanData.is_clean) {
+          setPipeNode("pnode-2", "done");
+          setPipeNode("pnode-c2", "error");
+          document.getElementById("pipelineBadge").textContent = "DỮ LIỆU CHƯA SẠCH";
+          document.getElementById("errUncleanList").innerHTML = cleanData.unclean_issues.map(e => `<li>${e}</li>`).join("");
+          showRightPane("rightUncleanError");
+          showToast("⚠️ Dữ liệu chưa sạch — quay lại Bước 1!");
+          return;
+        }
+
+        setPipeNode("pnode-2", "done");
+        setPipeNode("pnode-c2", "done");
+        // Dừng ở Bước 2.5 để Người nhập xác minh dữ liệu sau khi làm sạch
+        showVerifyCleanScreen();
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i><span>Kích hoạt AI Agent Xử lý Quy trình</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function runAnalyzeStep(extraNote, autoOptimize = false) {
+      const anRes = await fetch("/api/analyze-sheet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cleaned_data: state.cleanedData,
+          extra_feedback_note: extraNote,
+          retry_count: state.retryCount,
+          max_retries: 2,
+          auto_optimize: autoOptimize
+        })
+      });
+      const ev = await anRes.json();
+      state.evalResult = ev;
+
+      // Đồng bộ lại các thông số đã được AI điều chỉnh để không lặp lại lỗi cũ
+      if (state.cleanedData) {
+        state.cleanedData.discount_pct = ev.discount_pct;
+        state.cleanedData.deadline_days = ev.deadline_days;
+        state.cleanedData.sla = ev.sla_requirement;
+      }
+
+      setPipeNode("pnode-3", "done");
+      setPipeNode("pnode-4", "active");
+      document.getElementById("pipelineBadge").textContent = ev.loop_limit_reached
+        ? "ĐÃ NGẮT VÒNG LẶP — CHỜ CON NGƯỜI"
+        : "CHỜ XÁC NHẬN FEEDBACK";
+
+      // Update Top KPI
+      document.getElementById("kpiLivePrice").textContent = fmtMoney(ev.final_price);
+      document.getElementById("kpiLiveAuth").textContent = ev.approval_level;
+      document.getElementById("kpiLiveLead").textContent = `${ev.max_lead_days} / ${ev.deadline_days} ngày`;
+
+      // Render Result Panes
+      showRightPane("rightSuccessResult");
+      document.getElementById("rightClientTag").textContent = ev.client;
+      document.getElementById("resReadyList").innerHTML = ev.ready_to_quote_parts.length
+        ? ev.ready_to_quote_parts.map(x => `<li>${x}</li>`).join("")
+        : `<li>Chưa có mục sẵn ngay.</li>`;
+      document.getElementById("resVerifyList").innerHTML = ev.must_verify_parts.length
+        ? ev.must_verify_parts.map(x => `<li>${x}</li>`).join("")
+        : `<li>Không có mục nào cần xác minh thêm!</li>`;
+
+      document.getElementById("resStockTable").innerHTML = ev.feasibility_rows.map(r => `
+        <tr>
+          <td class="py-1.5 font-semibold text-stone-800">${r.name}</td>
+          <td class="py-1.5">${r.qty}</td>
+          <td class="py-1.5">${r.stock}</td>
+          <td class="py-1.5 font-bold">${fmtMoney(r.total_price)}</td>
+          <td class="py-1.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.is_ok ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${r.status}</span></td>
+        </tr>
+      `).join("");
+
+      document.getElementById("resFeedbackList").innerHTML = ev.feedback_summary.map(f => `<li>${f}</li>`).join("");
+
+      // Cập nhật bộ đếm chống lặp vô hạn ở tab Feedback
+      const attemptDisplay = Math.min(ev.retry_count + 1, ev.max_retries + 1);
+      document.getElementById("retryCounterBadge").textContent = `Lần kiểm tra: ${ev.retry_count}/${ev.max_retries} (tối đa)`;
+      const limitHit = Boolean(ev.loop_limit_reached);
+      document.getElementById("loopBreakerAlert").classList.toggle("hidden", !limitHit);
+      document.getElementById("feedbackInputWrap").classList.toggle("hidden", limitHit);
+      document.getElementById("btnReanalyze").classList.toggle("hidden", limitHit);
+
+      document.getElementById("outFinalPrice").textContent = fmtMoney(ev.final_price);
+      document.getElementById("outLead").textContent = `${ev.max_lead_days} ngày`;
+      document.getElementById("outManday").textContent = `${ev.total_mandays} công`;
+      document.getElementById("outAuth").textContent = ev.approval_level;
+
+      const tot = Math.max(1, ev.hardware_cost + ev.service_cost);
+      const hwPct = Math.round((ev.hardware_cost / tot) * 100);
+      document.getElementById("outBarHw").style.width = hwPct + "%";
+      document.getElementById("outBarSvc").style.width = (100 - hwPct) + "%";
+      document.getElementById("outLblHw").textContent = `Phần cứng: ${fmtMoney(ev.hardware_cost)}`;
+      document.getElementById("outLblSvc").textContent = `Dịch vụ & SLA: ${fmtMoney(ev.service_cost)}`;
+
+      const hasNotice = (ev.customer_change_notices && ev.customer_change_notices.length > 0);
+      document.getElementById("customerNoticeCard").classList.toggle("hidden", !hasNotice);
+      document.getElementById("customerNoticeDraft").value = ev.customer_notice_draft || "";
+
+      switchRightTab(state.retryCount > 0 ? "feedback" : "analysis");
+      showToast(state.retryCount > 0 ? `🔄 Đã phân tích lại (lần ${state.retryCount}/2)!` : "✅ AI Agent đã phân tích xong!");
+    }
+
+    function copyCustomerNotice() {
+      const el = document.getElementById("customerNoticeDraft");
+      el.select();
+      navigator.clipboard.writeText(el.value);
+      showToast("📋 Đã copy Thư thông báo điều chỉnh gửi khách hàng!");
+    }
+
+    function acceptFeedback() {
+      setPipeNode("pnode-4", "done");
+      setPipeNode("pnode-5", "done");
+      document.getElementById("pipelineBadge").textContent = "HOÀN TẤT • SẴN SÀNG XUẤT";
+      switchRightTab("output");
+      showToast("🎉 Feedback OK! Đã mở khóa Xuất Báo cáo & Dashboard.");
+    }
+
+    async function reanalyzeFeedback() {
+      if (state.retryCount >= 2) {
+        showToast("⛔ Đã đạt giới hạn 2 lần phân tích lại — vui lòng sửa Sheet gốc!");
+        return;
+      }
+      state.retryCount += 1;
+      const note = document.getElementById("fbAdjustInput").value.trim();
+      document.getElementById("fbAdjustInput").value = "";
+      setPipeNode("pnode-3", "active");
+      showToast(`🔄 Đang điều chỉnh & phân tích lại (lần ${state.retryCount}/2)...`);
+      await runAnalyzeStep(note, true);
+    }
+
+    function backToSheetEdit() {
+      state.retryCount = 0;
+      switchLeftTab("sheet");
+      setPipeNode("pnode-1", "active");
+      document.getElementById("pipelineBadge").textContent = "ĐANG SỬA SHEET GỐC";
+      showToast("✏️ Hãy chỉnh sửa lại dữ liệu Sheet bên trái rồi bấm Kích hoạt AI Agent!");
+    }
+
+    function switchRightTab(tab) {
+      ["analysis", "feedback", "output"].forEach(t => {
+        document.getElementById("rpane-" + t).classList.toggle("hidden", t !== tab);
+        document.getElementById("rtab-" + t).className = t === tab
+          ? "px-3 py-1.5 rounded-lg bg-white text-xs font-bold text-stone-900 shadow-sm border-0 cursor-pointer"
+          : "px-3 py-1.5 rounded-lg bg-transparent text-xs font-semibold text-stone-600 border-0 cursor-pointer";
+      });
+    }
+
+    function focusStep(step) {
+      if (step === 1) switchLeftTab("sheet");
+      if (step === 3 && state.evalResult) switchRightTab("analysis");
+      if (step === 4 && state.evalResult) switchRightTab("feedback");
+      if (step === 5 && state.evalResult) switchRightTab("output");
+    }
+
+    function switchView(v) {
+      ["pipeline", "catalog", "policy", "history"].forEach(id => {
+        document.getElementById("view-" + id).classList.toggle("hidden", id !== v);
+      });
+      document.querySelectorAll(".nav-pill").forEach(el => el.classList.remove("active"));
+      const nav = document.getElementById("nav-" + v);
+      if (nav) nav.classList.add("active");
+    }
+
+    function resetAll() {
+      resetPipeVisual();
+      setPipeNode("pnode-1", "active");
+      showRightPane("rightEmptyState");
+      document.getElementById("pipelineBadge").textContent = "SẴN SÀNG TIẾP NHẬN";
+      showToast("Đã làm mới trạng thái!");
+    }
+
+    async function downloadDocx() {
+      if (!state.evalResult) return;
+      const res = await fetch("/api/export-docx", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(state.evalResult)
+      });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Bao_Gia_ThienMinh_${(state.evalResult.client || "DuAn").replace(/\s+/g, "_")}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("📄 Đang tải Báo cáo Word (.DOCX)!");
+    }
+
+    async function saveDossier() {
+      if (!state.evalResult) return;
+      const res = await fetch("/api/save-dossier", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ evaluation: state.evalResult, status: "ISSUED" })
+      });
+      const data = await res.json();
+      state.dossiers = data.dossiers || [];
+      renderHistory();
+      showToast(`💾 Đã lưu hồ sơ ${data.dossier_code}!`);
+    }
+
+    function renderCatalog() {
+      document.getElementById("catalogTableBody").innerHTML = state.catalog.map(c => `
+        <tr>
+          <td class="py-2 font-mono text-rose-600 font-semibold">${c.sku}</td>
+          <td class="py-2 font-semibold">${c.name}</td>
+          <td class="py-2">${c.category || ""}</td>
+          <td class="py-2 font-bold">${fmtMoney(c.unit_price)}</td>
+          <td class="py-2">${c.stock}</td>
+          <td class="py-2">${c.lead_time_days} ngày</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderHistory() {
+      const tb = document.getElementById("historyTableBody");
+      const sb = document.getElementById("recentSidebarList");
+      if (!state.dossiers.length) {
+        tb.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-stone-400">Chưa có hồ sơ nào được lưu.</td></tr>`;
+        return;
+      }
+      tb.innerHTML = state.dossiers.map(d => `
+        <tr>
+          <td class="py-2 font-mono font-bold text-rose-600">${d.dossier_code}</td>
+          <td class="py-2 font-semibold">${d.client_name}</td>
+          <td class="py-2">${d.deadline_days} ngày</td>
+          <td class="py-2">${d.discount_requested}%</td>
+          <td class="py-2 font-bold">${fmtMoney(d.final_bid_price)}</td>
+          <td class="py-2">${d.approval_level}</td>
+          <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">${d.status}</span></td>
+        </tr>
+      `).join("");
+      sb.innerHTML = state.dossiers.slice(0, 4).map(d => `
+        <div class="px-3 py-2 rounded-xl bg-white/10 border border-white/10 text-[11px]">
+          <div class="font-bold text-white truncate">${d.client_name}</div>
+          <div class="text-white/60 text-[10px]">${d.dossier_code} • ${fmtMoney(d.final_bid_price)}</div>
+        </div>
+      `).join("");
+    }
+
+    async function sendChat(e) {
+      e.preventDefault();
+      const inp = document.getElementById("chatInp");
+      const text = inp.value.trim();
+      if (!text) return;
+      inp.value = "";
+      const box = document.getElementById("chatMsgs");
+      box.innerHTML += `<div class="ml-auto max-w-[85%] p-2.5 rounded-xl bg-rose-500 text-white">${text}</div>`;
+      box.scrollTop = box.scrollHeight;
+      state.chatHistory.push({ role: "user", content: text });
+
+      const res = await fetch("/api/chat", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, history: state.chatHistory, context: state.evalResult || {} })
+      });
+      const data = await res.json();
+      state.chatHistory.push({ role: "assistant", content: data.reply });
+      const formatted = data.reply.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br/>");
+      box.innerHTML += `<div class="p-2.5 rounded-xl bg-white/10 text-white/95">${formatted}</div>`;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", bootstrap);
+    } else {
+      bootstrap();
+    }
+  </script>
+</body>
+</html>

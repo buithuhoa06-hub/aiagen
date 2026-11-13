@@ -1,0 +1,112 @@
+company:
+  name: "CÔNG TY CỔ PHẦN CÔNG NGHỆ THIÊN MINH"
+  address: "Tầng 8, Tòa nhà Thiên Minh, Hà Nội"
+  phone: "(024) 3888-9999"
+  email: "presales@thienminhtech.vn"
+
+# 1. Danh mục Giải pháp & Thiết bị chuẩn (Solution & Product Catalog)
+catalog:
+  - sku: "CISCO-C9300-48P"
+    name: "Switch Cisco Catalyst 9300 48-Port PoE+ Layer 3"
+    category: "Switch"
+    specs:
+      ports: 48
+      poe_budget_watt: 740
+      uplink: "10G SFP+"
+      layer: 3
+      stacking: true
+    unit_price: 85000000
+    stock: 6
+    lead_time_days: 2
+
+  - sku: "CISCO-C9300X-24Y"
+    name: "Switch Cisco Catalyst 9300X 24-Port 25G/10G Fiber Core"
+    category: "Switch"
+    specs:
+      ports: 24
+      poe_budget_watt: 0
+      uplink: "25G/10G SFP28"
+      layer: 3
+      stacking: true
+    unit_price: 145000000
+    stock: 2
+    lead_time_days: 3
+
+  - sku: "CISCO-C1000-24P"
+    name: "Switch Cisco Catalyst 1000 24-Port Gigabit PoE+ Layer 2"
+    category: "Switch"
+    specs:
+      ports: 24
+      poe_budget_watt: 370
+      uplink: "1G SFP"
+      layer: 2
+      stacking: false
+    unit_price: 18500000
+    stock: 15
+    lead_time_days: 1
+
+  - sku: "FORTI-FG-100F"
+    name: "Firewall Fortinet FortiGate 100F Next-Gen Firewall"
+    category: "Firewall"
+    specs:
+      throughput_ips: "1.0 Gbps"
+      vpn_tunnels: 500
+      interfaces: "16x GE RJ45, 4x SFP"
+    unit_price: 68000000
+    stock: 4
+    lead_time_days: 2
+
+  - sku: "ARUBA-AP-515"
+    name: "Access Point Aruba AP-515 Wi-Fi 6 (802.11ax) Doanh nghiệp"
+    category: "Access Point"
+    specs:
+      standard: "Wi-Fi 6"
+      max_clients: 512
+      poe_required: true
+    unit_price: 12500000
+    stock: 25
+    lead_time_days: 1
+
+  - sku: "CISCO-ISR-4331"
+    name: "Router Cisco ISR 4331/K9 Gigabit Security Router"
+    category: "Router"
+    specs:
+      ports: "3x GE, 2x NIM"
+      throughput: "100-300 Mbps"
+      features: "IPSec VPN, Routing, QoS"
+    unit_price: 36000000
+    stock: 8
+    lead_time_days: 2
+
+  - sku: "SVC-INSTALL-MANDAY"
+    name: "Dịch vụ Kỹ thuật Triển khai, Cấu hình VLAN/Routing/Security (1 Ngày công)"
+    category: "Service"
+    specs:
+      unit: "Manday"
+    unit_price: 2500000
+    stock: 999
+    lead_time_days: 1
+
+# 2. Quy tắc Phê duyệt Thẩm quyền (Escalation Matrix)
+approval_rules:
+  sales_rep:
+    max_discount_pct: 5.0
+    allow_out_of_catalog: false
+    allow_custom_sla: false
+  sales_manager:
+    max_discount_pct: 10.0
+    allow_out_of_catalog: true
+    max_out_of_catalog_val: 50000000
+    allow_custom_sla: true
+  board_of_directors:
+    max_discount_pct: 30.0
+    allow_out_of_catalog: true
+    allow_custom_sla: true
+
+# 3. Lực lượng Vận hành & Lịch trình (Deployment Resources)
+operations_capacity:
+  engineers_count: 5
+  working_days_per_month: 22
+  booked_mandays_current_month: 68
+  total_capacity_mandays: 110 # 5 * 22
+
